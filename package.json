@@ -24,6 +24,7 @@
   "homepage": "https://github.com/Project-Bot-Telegram/telegram-cloth-inventory-bot#readme",
   "dependencies": {
     "dotenv": "^17.4.2",
+    "mongoose": "^9.6.2",
     "telegraf": "^4.16.3"
   }
 }
