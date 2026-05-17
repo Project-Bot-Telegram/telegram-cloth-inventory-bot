@@ -1,0 +1,29 @@
+{
+  "name": "telegram-cloth-inventory-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Project-Bot-Telegram/telegram-cloth-inventory-bot.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Project-Bot-Telegram/telegram-cloth-inventory-bot/issues"
+  },
+  "homepage": "https://github.com/Project-Bot-Telegram/telegram-cloth-inventory-bot#readme",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "telegraf": "^4.16.3"
+  }
+}
