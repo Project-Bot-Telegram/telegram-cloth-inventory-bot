@@ -1,7 +1,7 @@
 {
   "name": "telegram-cloth-inventory-bot",
   "version": "1.0.0",
-  "description": "",
+  "description": "npm install",
   "main": "index.js",
   "directories": {
     "doc": "docs",
@@ -26,5 +26,6 @@
     "dotenv": "^17.4.2",
     "mongoose": "^9.6.2",
     "telegraf": "^4.16.3"
-  }
+  },
+  "devDependencies": {}
 }
