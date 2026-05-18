@@ -14,9 +14,11 @@ module.exports = async (ctx) => {
   ctx.reply(`
 Profile Information
 
+Telegram ID: ${user.telegram_id}
 Full Name: ${user.full_name}
-Username: ${user.username}
+Username: ${user.username || 'N/A'}
 Language: ${user.language}
 Role: ${user.role}
+Created At: ${user.created_at.toLocaleString()}
   `);
 };

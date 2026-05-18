@@ -37,12 +37,19 @@ bot.command('profile', authMiddleware, profileCommand);
 
 const roleMiddleware = require('./src/middleware/role');
 const adminCommand = require('./src/commands/admin');
+const totalUserCommand = require('./src/commands/admin/totalUser');
+const viewUserCommand = require('./src/commands/admin/viewUser');
+const promoteUserCommand = require('./src/commands/admin/promoteUser');
 
 bot.command(
   'admin',
   roleMiddleware,
   adminCommand
 );
+
+bot.command('total-user', roleMiddleware, totalUserCommand);
+bot.hears(/^\/view-(\d+)(?:@\S+)?$/i, roleMiddleware, viewUserCommand);
+bot.hears(/^\/promote-(\d+)(?:@\S+)?$/i, roleMiddleware, promoteUserCommand);
 
 // Command to check database connection status
 bot.command('status', async (ctx) => {
