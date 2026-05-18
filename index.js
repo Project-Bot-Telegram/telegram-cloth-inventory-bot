@@ -1,9 +1,10 @@
 require('dotenv').config();
-const { Telegraf } = require('telegraf');
+const { Telegraf, session } = require('telegraf');
 const mongoose = require('mongoose');
 const connectDB = require('./src/database/database');
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
+bot.use(session());
 
 // ✅ Try to connect to MongoDB
 // ✅ If connection succeeds → Launch the bot
@@ -17,10 +18,31 @@ const startBot = async () => {
   console.log('🤖 Bot launched successfully');
 };
 
-// /start bot command handler
-bot.start((ctx) => {
-  ctx.reply('Welcome! Use /status to check database connection');
+const registerCommand = require('./src/commands/users/register');
+
+bot.start(registerCommand);
+bot.on('text', async (ctx, next) => {
+  if (ctx.session && ctx.session.registration) {
+    await registerCommand(ctx);
+    return;
+  }
+
+  return next();
 });
+
+const profileCommand = require('./src/commands/users/profile');
+const authMiddleware = require('./src/middleware/auth');
+
+bot.command('profile', authMiddleware, profileCommand);
+
+const roleMiddleware = require('./src/middleware/role');
+const adminCommand = require('./src/commands/admin');
+
+bot.command(
+  'admin',
+  roleMiddleware,
+  adminCommand
+);
 
 // Command to check database connection status
 bot.command('status', async (ctx) => {
