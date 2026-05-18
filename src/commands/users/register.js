@@ -7,11 +7,14 @@ const registrationQuestions = [
 
 const startRegistration = async (ctx) => {
   ctx.session = ctx.session || {};
+  const telegramUser = ctx.from;
+  const username = telegramUser.username || `${telegramUser.first_name || ''}${telegramUser.last_name ? ' ' + telegramUser.last_name : ''}`.trim();
+
   ctx.session.registration = {
     stepIndex: 0,
     data: {
-      telegram_id: ctx.from.id,
-      username: ctx.from.username || ''
+      telegram_id: telegramUser.id,
+      username: username || null
     }
   };
 
