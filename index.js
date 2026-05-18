@@ -47,6 +47,47 @@ bot.command(
   adminCommand
 );
 
+const addCategory =
+require('./src/commands/categories/addCategory');
+
+const listCategory =
+require('./src/commands/categories/listCategory');
+const editCategory =
+require('./src/commands/categories/editCategory');
+const deleteCategory =
+require('./src/commands/categories/deleteCategory');
+
+const addProduct =
+require('./src/commands/products/addProduct');
+
+const listProduct =
+require('./src/commands/products/listProduct');
+
+const productDetail =
+require('./src/commands/products/productDetail');
+ 
+const editProduct = require('./src/commands/products/editProduct');
+const deleteProduct = require('./src/commands/products/deleteProduct');
+const addQuantity = require('./src/commands/products/addQuantity');
+const searchProduct = require('./src/commands/products/searchProduct');
+
+bot.command('addcategory', roleMiddleware, addCategory);
+
+bot.command('categories', authMiddleware, listCategory);
+bot.command('editcategory', roleMiddleware, editCategory);
+bot.command('deletecategory', roleMiddleware, deleteCategory);
+
+bot.command('addproduct', roleMiddleware, addProduct);
+
+bot.command('products', authMiddleware, listProduct);
+
+bot.command('product', authMiddleware, productDetail);
+
+bot.command('editproduct', roleMiddleware, editProduct);
+bot.command('deleteproduct', roleMiddleware, deleteProduct);
+bot.command('addquantity', roleMiddleware, addQuantity);
+bot.command('search', authMiddleware, searchProduct);
+
 bot.command('total-user', roleMiddleware, totalUserCommand);
 bot.hears(/^\/view-(\d+)(?:@\S+)?$/i, roleMiddleware, viewUserCommand);
 bot.hears(/^\/promote-(\d+)(?:@\S+)?$/i, roleMiddleware, promoteUserCommand);
