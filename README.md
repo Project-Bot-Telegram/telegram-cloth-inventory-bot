@@ -29,6 +29,33 @@ npm start
 - `/admin` - Admin-only panel (requires an admin user role)
 - `/status` - Check MongoDB connection status
 
+## Category & Product Commands
+
+- `/addcategory <category_name>` (admin) — Create a new category. Example: `/addcategory Men`
+- `/editcategory <category_name> <new_name>` (admin) — Rename a category. Example: `/editcategory Men Mens`
+- `/deletecategory <category_name>` (admin) — Delete a category by name. Example: `/deletecategory Mens`
+- `/addproduct <name> <category> <price> [quantity]` (admin) — Add a product (category must exist). Example: `/addproduct Shirt Men 19.99 10`
+- `/products` (registered users) — List all products. Each product shows an `ID` (human-friendly `product_id` when available), name, category, price, quantity and stock status.
+- `/product <name>` (registered users) — Show product details. Example: `/product Shirt` (detail output includes the product `ID`).
+- `/search <id|name|category|price> <query>` (registered users) — Search products by the given field.
+   - Example: `/search id 0001`
+   - Example: `/search name Shirt`
+   - Example: `/search category Men`
+   - Example: `/search price 19.99`
+   - Example: `/editproduct 0001 price 24.99`
+ - `/deleteproduct <productId>` (admin) — Delete a product by id. Example: `/deleteproduct 0001`
+- `/addquantity <productId> <amount>` (admin) — Increase a product's quantity by `<amount>`.
+  - Use the `ID` shown by `/products`. `/addquantity` accepts either the human-friendly `product_id` (e.g. `0001`) or the Mongo `_id`.
+
+Notes on `ID` and migration:
+- New products are assigned a sequential zero-padded `product_id` (e.g. `0001`, `0002`). Existing products created before this change will not have a `product_id` until they are recreated or updated.
+- If you want me to assign `product_id` values to existing products automatically, I can add a one-time migration script that enumerates products and assigns IDs; tell me if you want that.
+
+Access levels:
+
+- Admin-only commands: `/addcategory`, `/addproduct`, `/editproduct`, `/deleteproduct` — only users with role `admin` can run these.
+- Registered users (staff): `/categories`, `/products`, `/product` — these require the user to be registered via `/start`.
+
 ## Admin Commands
 
 - `/total-user` - Display the total number of registered users
