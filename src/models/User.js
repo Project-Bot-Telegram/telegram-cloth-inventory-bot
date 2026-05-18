@@ -3,9 +3,8 @@ const mongoose = require('mongoose');
 const userSchema = new mongoose.Schema({
   telegram_id: Number,
   username: String,
-  first_name: String,
-  last_name: String,
-  language_code: String,
+  full_name: String,
+  language: String,
   role: {
     type: String,
     default: 'staff'
