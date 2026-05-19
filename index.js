@@ -47,6 +47,8 @@ const searchProduct = require('./src/commands/products/searchProduct');
 const placeOrderCommand = require('./src/commands/orders/placeOrder');
 const orderHistoryCommand = require('./src/commands/orders/orderHistory');
 const confirmOrderCallback = require('./src/commands/orders/confirmOrder');
+const showCategories = require('./src/commands/categories/showCategories');
+const showCategoryProductsCallback = require('./src/commands/categories/showCategoryProducts');
 
 // start and text handler need `registerCommand` to be defined first
 bot.start(registerCommand);
@@ -90,7 +92,30 @@ bot.command('order', authMiddleware, placeOrderCommand);
 bot.command('orders', authMiddleware, orderHistoryCommand);
 bot.command('total-user', roleMiddleware, totalUserCommand);
 
-bot.on('callback_query', confirmOrderCallback);
+bot.hears('Show product', authMiddleware, showCategories);
+bot.hears('Orders History', authMiddleware, orderHistoryCommand);
+bot.hears('View Profile', authMiddleware, profileCommand);
+bot.hears('Help', async (ctx) => {
+  return ctx.reply('Use the bot commands below or type them directly:\n/products\n/product <name|id>\n/order <product_id|name> <quantity>\n/orders\n/profile');
+});
+bot.hears('Support', async (ctx) => {
+  return ctx.reply('For support, please contact your admin or use /status to check the bot status.');
+});
+
+bot.on('callback_query', async (ctx) => {
+  const data = ctx.callbackQuery && ctx.callbackQuery.data;
+  if (!data) {
+    return;
+  }
+
+  if (data.startsWith('confirm_order:')) {
+    return confirmOrderCallback(ctx);
+  }
+
+  if (data.startsWith('category_show:')) {
+    return showCategoryProductsCallback(ctx);
+  }
+});
 
 bot.hears(/^\/view-(\d+)(?:@\S+)?$/i, roleMiddleware, viewUserCommand);
 bot.hears(/^\/promote-(\d+)(?:@\S+)?$/i, roleMiddleware, promoteUserCommand);
