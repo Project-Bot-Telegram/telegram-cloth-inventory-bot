@@ -43,6 +43,8 @@ npm start
    - Example: `/search category Men`
    - Example: `/search price 19.99`
    - Example: `/editproduct 0001 price 24.99`
+- `/order <product_id|name> <quantity>` (registered users) — Place an order for a product. Example: `/order 0001 2` or `/order Shirt 2`. After placing an order, the bot sends a local QR payment image from `assets/QRpayment/QRpayment.png` and a Confirm button. Payment must be confirmed within 2 minutes or the order expires and stock is restored.
+- `/orders` (registered users) — View your order history.
 - `/deleteproduct <productId>` (admin) — Delete a product by id. Example: `/deleteproduct 0001`
 - `/addstock <productId> <amount>` (admin) — Increase a product's stock by `<amount>`.
   - Use the `ID` shown by `/products`. `/addstock` accepts either the human-friendly `product_id` (e.g. `0001`) or the Mongo `_id`.

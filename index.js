@@ -44,6 +44,9 @@ const addStock = require('./src/commands/products/addStock');
 const outStock = require('./src/commands/products/outStock');
 const clearStock = require('./src/commands/products/clearStock');
 const searchProduct = require('./src/commands/products/searchProduct');
+const placeOrderCommand = require('./src/commands/orders/placeOrder');
+const orderHistoryCommand = require('./src/commands/orders/orderHistory');
+const confirmOrderCallback = require('./src/commands/orders/confirmOrder');
 
 // start and text handler need `registerCommand` to be defined first
 bot.start(registerCommand);
@@ -83,7 +86,11 @@ bot.command('addstock', roleMiddleware, addStock);
 bot.command('outstock', roleMiddleware, outStock);
 bot.command('clearstock', roleMiddleware, clearStock);
 bot.command('search', authMiddleware, searchProduct);
+bot.command('order', authMiddleware, placeOrderCommand);
+bot.command('orders', authMiddleware, orderHistoryCommand);
 bot.command('total-user', roleMiddleware, totalUserCommand);
+
+bot.on('callback_query', confirmOrderCallback);
 
 bot.hears(/^\/view-(\d+)(?:@\S+)?$/i, roleMiddleware, viewUserCommand);
 bot.hears(/^\/promote-(\d+)(?:@\S+)?$/i, roleMiddleware, promoteUserCommand);
