@@ -40,7 +40,9 @@ const listProduct = require('./src/commands/products/listProduct');
 const productDetail = require('./src/commands/products/productDetail');
 const editProduct = require('./src/commands/products/editProduct');
 const deleteProduct = require('./src/commands/products/deleteProduct');
-const addQuantity = require('./src/commands/products/addQuantity');
+const addStock = require('./src/commands/products/addStock');
+const outStock = require('./src/commands/products/outStock');
+const clearStock = require('./src/commands/products/clearStock');
 const searchProduct = require('./src/commands/products/searchProduct');
 
 // start and text handler need `registerCommand` to be defined first
@@ -77,7 +79,9 @@ bot.command('products', authMiddleware, listProduct);
 bot.command('product', authMiddleware, productDetail);
 bot.command('editproduct', roleMiddleware, editProduct);
 bot.command('deleteproduct', roleMiddleware, deleteProduct);
-bot.command('addquantity', roleMiddleware, addQuantity);
+bot.command('addstock', roleMiddleware, addStock);
+bot.command('outstock', roleMiddleware, outStock);
+bot.command('clearstock', roleMiddleware, clearStock);
 bot.command('search', authMiddleware, searchProduct);
 bot.command('total-user', roleMiddleware, totalUserCommand);
 

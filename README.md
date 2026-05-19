@@ -36,16 +36,23 @@ npm start
 - `/deletecategory <category_name>` (admin) — Delete a category by name. Example: `/deletecategory Mens`
 - `/addproduct <name> <category> <price> [quantity]` (admin) — Add a product (category must exist). Example: `/addproduct Shirt Men 19.99 10`
 - `/products` (registered users) — List all products. Each product shows an `ID` (human-friendly `product_id` when available), name, category, price, quantity and stock status.
-- `/product <name>` (registered users) — Show product details. Example: `/product Shirt` (detail output includes the product `ID`).
+- `/product <name|id>` (registered users) — Show product details. Example: `/product Shirt` or `/product 0003` (detail output includes the product `ID`).
 - `/search <id|name|category|price> <query>` (registered users) — Search products by the given field.
    - Example: `/search id 0001`
    - Example: `/search name Shirt`
    - Example: `/search category Men`
    - Example: `/search price 19.99`
    - Example: `/editproduct 0001 price 24.99`
- - `/deleteproduct <productId>` (admin) — Delete a product by id. Example: `/deleteproduct 0001`
-- `/addquantity <productId> <amount>` (admin) — Increase a product's quantity by `<amount>`.
-  - Use the `ID` shown by `/products`. `/addquantity` accepts either the human-friendly `product_id` (e.g. `0001`) or the Mongo `_id`.
+- `/deleteproduct <productId>` (admin) — Delete a product by id. Example: `/deleteproduct 0001`
+- `/addstock <productId> <amount>` (admin) — Increase a product's stock by `<amount>`.
+  - Use the `ID` shown by `/products`. `/addstock` accepts either the human-friendly `product_id` (e.g. `0001`) or the Mongo `_id`.
+- `/outstock <productId> <amount>` (admin) — Decrease a product's stock by `<amount>`. Quantity will not go below zero.
+- `/clearstock <productId>` (admin) — Set a product's quantity to zero.
+
+Access levels:
+
+- Admin-only commands: `/addcategory`, `/addproduct`, `/editproduct`, `/deleteproduct`, `/addstock`, `/outstock`, `/clearstock` — only users with role `admin` can run these.
+- Registered users (staff): `/categories`, `/products`, `/product` — these require the user to be registered via `/start`.
 
 Notes on `ID` and migration:
 - New products are assigned a sequential zero-padded `product_id` (e.g. `0001`, `0002`). Existing products created before this change will not have a `product_id` until they are recreated or updated.
