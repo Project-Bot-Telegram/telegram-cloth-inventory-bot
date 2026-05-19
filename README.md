@@ -24,7 +24,7 @@ npm start
 
 ## Bot Commands
 
-- `/start` - Register new users or welcome returning users by full name
+- `/start` - Register new users or welcome returning users by full name. After registration, the bot shows a bottom menu with buttons like `Show product`, `Orders History`, `View Profile`, `Help`, and `Support`.
 - `/profile` - Display your registered profile information
 - `/admin` - Admin-only panel (requires an admin user role)
 - `/status` - Check MongoDB connection status
@@ -36,6 +36,7 @@ npm start
 - `/deletecategory <category_name>` (admin) — Delete a category by name. Example: `/deletecategory Mens`
 - `/addproduct <name> <category> <price> [quantity]` (admin) — Add a product (category must exist). Example: `/addproduct Shirt Men 19.99 10`
 - `/products` (registered users) — List all products. Each product shows an `ID` (human-friendly `product_id` when available), name, category, price, quantity and stock status.
+- `Show product` (bottom keyboard button) — Open a category menu where each button shows one category plus total items in that category, then choose a category to view its products.
 - `/product <name|id>` (registered users) — Show product details. Example: `/product Shirt` or `/product 0003` (detail output includes the product `ID`).
 - `/search <id|name|category|price> <query>` (registered users) — Search products by the given field.
    - Example: `/search id 0001`
