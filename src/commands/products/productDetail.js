@@ -1,14 +1,28 @@
+const mongoose = require('mongoose');
 const Product = require('../../models/Product');
+
+const findProduct = async (identifier) => {
+  let product = await Product.findOne({ name: identifier }).populate('category_id');
+  if (product) return product;
+
+  if (mongoose.Types.ObjectId.isValid(identifier)) {
+    product = await Product.findById(identifier).populate('category_id');
+    if (product) return product;
+  }
+
+  product = await Product.findOne({ product_id: identifier }).populate('category_id');
+  return product;
+};
 
 module.exports = async (ctx) => {
   const text = ctx.message.text.split(' ');
+  const identifier = text[1];
 
-  const productName = text[1];
+  if (!identifier) {
+    return ctx.reply('Usage: /product <name|id>');
+  }
 
-  const product = await Product.findOne({
-    name: productName
-  }).populate('category_id');
-
+  const product = await findProduct(identifier);
   if (!product) {
     return ctx.reply('Product not found');
   }
