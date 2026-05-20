@@ -3,7 +3,8 @@ const { mainMenuKeyboard } = require('../../utils/keyboards');
 
 const registrationQuestions = [
   { key: 'full_name', prompt: 'Please enter your full name:' },
-  { key: 'language', prompt: 'What language do you speak? (English, Khmer, etc.)' }
+  { key: 'language', prompt: 'What language do you speak? (English, Khmer, etc.)' },
+  { key: 'address', prompt: 'Please enter your delivery address:' }
 ];
 
 const startRegistration = async (ctx) => {

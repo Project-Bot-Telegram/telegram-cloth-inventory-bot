@@ -1,3 +1,4 @@
+const { Markup } = require('telegraf');
 const User = require('../../models/User');
 
 module.exports = async (ctx) => {
@@ -11,14 +12,13 @@ module.exports = async (ctx) => {
     return ctx.reply('User not found');
   }
 
-  ctx.reply(`
-Profile Information
+  const message = `\nProfile Information\n\nTelegram ID: ${user.telegram_id}\nFull Name: ${user.full_name}\nUsername: ${user.username || 'N/A'}\nLanguage: ${user.language}\nAddress: ${user.address || 'N/A'}\nRole: ${user.role}\nCreated At: ${user.created_at.toLocaleString()}`;
 
-Telegram ID: ${user.telegram_id}
-Full Name: ${user.full_name}
-Username: ${user.username || 'N/A'}
-Language: ${user.language}
-Role: ${user.role}
-Created At: ${user.created_at.toLocaleString()}
-  `);
+  return ctx.reply(message, Markup.inlineKeyboard([
+    [
+      Markup.button.callback('Help', 'help'),
+      Markup.button.callback('Support', 'support'),
+      Markup.button.callback('Edit', 'edit_profile:start')
+    ]
+  ]));
 };

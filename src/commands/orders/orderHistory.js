@@ -29,9 +29,9 @@ module.exports = async (ctx) => {
 
     if (order.cart_items && order.cart_items.length > 0) {
       const cartLines = order.cart_items.map((item) => `Product: ${item.product_name}\nCategory: ${item.product_category}\nQuantity: ${item.quantity}\nPrice: $${item.product_price.toFixed(2)}\nTotal: $${item.total_price.toFixed(2)}`).join('\n-------------------------\n');
-      message += `Order #${index + 1}\nCart order:\n${cartLines}\n-------------------------\nTotal: $${order.total_price.toFixed(2)}\nStatus: ${status}${expiresText}\nDate: ${createdAt}\n\n`;
+      message += `Order #${index + 1}\nCart order:\n${cartLines}\n-------------------------\nTotal: $${order.total_price.toFixed(2)}\nAddress: ${order.address || 'N/A'}\nStatus: ${status}${expiresText}\nDate: ${createdAt}\n\n`;
     } else {
-      message += `Order #${index + 1}\nProduct: ${order.product_name}\nCategory: ${order.product_category}\nQuantity: ${order.quantity}\nPrice: $${order.product_price.toFixed(2)}\nTotal: $${order.total_price.toFixed(2)}\nStatus: ${status}${expiresText}\nDate: ${createdAt}\n\n`;
+      message += `Order #${index + 1}\nProduct: ${order.product_name}\nCategory: ${order.product_category}\nQuantity: ${order.quantity}\nPrice: $${order.product_price.toFixed(2)}\nTotal: $${order.total_price.toFixed(2)}\nAddress: ${order.address || 'N/A'}\nStatus: ${status}${expiresText}\nDate: ${createdAt}\n\n`;
     }
   });
 

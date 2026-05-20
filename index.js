@@ -29,6 +29,9 @@ const placeOrderCommand = require('./src/commands/orders/placeOrder');
 const orderHistoryCommand = require('./src/commands/orders/orderHistory');
 const confirmOrderCallback = require('./src/commands/orders/confirmOrder');
 const orderNowCallback = require('./src/commands/orders/orderNow');
+const orderAddressChoiceCallback = require('./src/commands/orders/orderAddressChoice');
+const editProfileCallback = require('./src/commands/users/editProfileCallback');
+const editProfileResponse = require('./src/commands/users/editProfileResponse');
 const addToCartCallback = require('./src/commands/products/addToCart');
 const viewProductDetailCallback = require('./src/commands/products/viewProductDetail');
 const viewCartCallback = require('./src/commands/products/viewCart');
@@ -39,6 +42,7 @@ const showCategoryProductsCallback = require('./src/commands/categories/showCate
 const statusCommand = require('./src/commands/connect/testDatabaseConn');
 const helpCommand = require('./src/commands/support/help');
 const supportCommand = require('./src/commands/support/support');
+const handlePendingOrderAddress = require('./src/commands/orders/handlePendingOrderAddress');
 const startBot = require('./src/commands/startBot/startBot');
 
 
@@ -46,6 +50,16 @@ const startBot = require('./src/commands/startBot/startBot');
 bot.start(registerCommand);
 
 bot.on('text', async (ctx, next) => {
+  if (ctx.session && ctx.session.pendingOrder) {
+    await handlePendingOrderAddress(ctx);
+    return;
+  }
+
+  if (ctx.session && ctx.session.editProfile) {
+    await editProfileResponse(ctx);
+    return;
+  }
+
   if (ctx.session && ctx.session.registration) {
     await registerCommand(ctx);
     return;
@@ -93,6 +107,28 @@ bot.on('callback_query', async (ctx) => {
 
   if (data.startsWith('confirm_order:')) {
     return confirmOrderCallback(ctx);
+  }
+
+  if (data.startsWith('order_address:')) {
+    return orderAddressChoiceCallback(ctx);
+  }
+
+  if (data === 'help') {
+    await ctx.answerCbQuery();
+    return helpCommand(ctx);
+  }
+
+  if (data === 'support') {
+    await ctx.answerCbQuery();
+    return supportCommand(ctx);
+  }
+
+  if (data.startsWith('edit_profile:')) {
+    return editProfileCallback(ctx);
+  }
+
+  if (data.startsWith('confirm_edit:')) {
+    return editProfileCallback(ctx);
   }
 
   if (data.startsWith('category_show:')) {
