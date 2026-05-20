@@ -84,10 +84,44 @@ module.exports = async (ctx) => {
 
   await safeAnswerCbQuery(ctx, 'Payment confirmed!');
 
+  const fullName = user.full_name || 'N/A';
+  const username = user.username || 'N/A';
+  const telegramId = user.telegram_id || 'N/A';
+  const orderIdText = order._id.toString();
+  const addressText = order.address || 'N/A';
+
   if (order.cart_items && order.cart_items.length > 0) {
     const cartSummary = order.cart_items.map((item) => `- ${item.product_name} x${item.quantity} = $${item.total_price.toFixed(2)}`).join('\n');
-    await ctx.reply(`✅ Order confirmed!\n\nCart order:\n${cartSummary}\n\nTotal: $${order.total_price.toFixed(2)}\nStatus: confirmed`);
+    await ctx.reply(
+      `✅ Order confirmed!\n\n` +
+      `-------------------------------------------\n` +
+      `Telegram ID: ${telegramId}\n` +
+      `Full name: ${fullName}\n` +
+      `Username: ${username}\n` +
+      `Address: ${addressText}\n` +
+      `-------------------------------------------\n` +
+      `Order Summary:\n${cartSummary}\n` +
+      `-------------------------------------------\n` +
+      `Total: $${order.total_price.toFixed(2)}\n` +
+      `Status: confirmed\n` +
+      `--------------------------------------------`
+    );
   } else {
-    await ctx.reply(`✅ Order confirmed!\n\nProduct: ${order.product_name}\nCategory: ${order.product_category}\nQuantity: ${order.quantity}\nTotal: $${order.total_price.toFixed(2)}\nStatus: confirmed`);
+    await ctx.reply(
+      `✅ Order confirmed!\n\n` +
+      `-------------------------------------------\n` +
+      `Telegram ID: ${telegramId}\n` +
+      `Full name: ${fullName}\n` +
+      `Username: ${username}\n` +
+      `Address: ${addressText}\n` +
+      `-------------------------------------------\n` +
+      `Product: ${order.product_name}\n` +
+      `Category: ${order.product_category}\n` +
+      `Quantity: ${order.quantity}\n` +
+      `-------------------------------------------\n` +
+      `Total: $${order.total_price.toFixed(2)}\n` +
+      `Status: confirmed\n` +
+      `--------------------------------------------`
+    );
   }
 };

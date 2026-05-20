@@ -10,7 +10,8 @@ const supportCommand = async (ctx) => {
     '• Example: /product Shirt or /product 0001\n\n' +
     'Step 3: Place Your Order\n' +
     '• Use /order <product_id> <quantity>\n' +
-    '• Example: /order 0001 2 (for 2 shirts)\n\n' +
+    '• Example: /order 0001 2 (for 2 shirts)\n' +
+    '• Then send your delivery address when prompted\n\n' +
     'Step 4: Complete Payment\n' +
     '• Scan the QR code sent by the bot\n' +
     '• Complete payment within 2 minutes\n' +

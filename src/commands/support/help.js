@@ -5,6 +5,7 @@ const helpCommand = async (ctx) => {
     '/products - List all products\n' +
     '/product <name|id> - View product details\n' +
     '/order <product_id|name> <quantity> - Place an order\n' +
+    '  After placing an order, send your delivery address when prompted.\n' +
     '/orders - View your order history\n' +
     '/profile - View your profile\n' +
     '/search <field> <query> - Search products\n\n' +
