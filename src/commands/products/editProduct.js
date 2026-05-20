@@ -41,8 +41,10 @@ module.exports = async (ctx) => {
     product.quantity = qty;
   } else if (field === 'description') {
     product.description = newValue;
+  } else if (field === 'image') {
+    product.image = newValue;
   } else {
-    return ctx.reply('Unknown field. Allowed: name, category, price, quantity, description');
+    return ctx.reply('Unknown field. Allowed: name, category, price, quantity, description, image');
   }
 
   await product.save();

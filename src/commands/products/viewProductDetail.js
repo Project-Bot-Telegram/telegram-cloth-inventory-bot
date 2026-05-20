@@ -1,6 +1,7 @@
 const { Markup } = require('telegraf');
 const mongoose = require('mongoose');
 const Product = require('../../models/Product');
+const User = require('../../models/User');
 const { safeAnswerCbQuery } = require('../../utils/telegramHelper');
 
 const findProductById = async (id) => {
@@ -38,10 +39,36 @@ module.exports = async (ctx) => {
   else if (quantity > 0 && quantity < 5) status = 'Low stock';
 
   const displayId = product.product_id || String(product._id);
-  const keyboard = Markup.inlineKeyboard([
+  const user = await User.findOne({ telegram_id: ctx.from.id });
+  const buttons = [
     [Markup.button.callback('add to cart', `add_cart:${product._id}`), Markup.button.callback('Order Now', `order_now:${product._id}`)]
-  ]);
+  ];
 
-  // Send product detail with action buttons attached below
-  await ctx.reply(`\nProduct Detail\n\nID: ${displayId}\nName: ${product.name}\nCategory: ${categoryName}\nPrice: $${price}\nQuantity: ${quantity}\nStatus: ${status}\nDescription: ${description}`, keyboard);
+  if (user && user.role === 'admin') {
+    buttons.push([Markup.button.callback('Edit Product', `edit_product:start:${product._id}`)]);
+  }
+
+  const keyboard = Markup.inlineKeyboard(buttons);
+
+  const detailText = `\nProduct Detail\n\nID: ${displayId}\nName: ${product.name}\nCategory: ${categoryName}\nPrice: $${price}\nQuantity: ${quantity}\nStatus: ${status}\nDescription: ${description}`;
+
+  if (product.image) {
+    try {
+      const photoSource = product.image.startsWith('http')
+        ? { url: product.image }
+        : { source: product.image };
+      await ctx.replyWithPhoto(
+        photoSource,
+        {
+          caption: detailText,
+          ...keyboard
+        }
+      );
+      return;
+    } catch (err) {
+      console.error('Failed to send product image:', err);
+    }
+  }
+
+  await ctx.reply(detailText, keyboard);
 };

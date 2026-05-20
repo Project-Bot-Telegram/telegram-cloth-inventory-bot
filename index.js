@@ -33,7 +33,8 @@ const orderAddressChoiceCallback = require('./src/commands/orders/orderAddressCh
 const editProfileCallback = require('./src/commands/users/editProfileCallback');
 const editProfileResponse = require('./src/commands/users/editProfileResponse');
 const addToCartCallback = require('./src/commands/products/addToCart');
-const viewProductDetailCallback = require('./src/commands/products/viewProductDetail');
+const editProductCallback = require('./src/commands/products/editProductCallback');
+const editProductResponse = require('./src/commands/products/editProductResponse');
 const viewCartCallback = require('./src/commands/products/viewCart');
 const clearCartCallback = require('./src/commands/products/clearCart');
 const orderAllCartCallback = require('./src/commands/products/orderAllCart');
@@ -46,10 +47,10 @@ const handlePendingOrderAddress = require('./src/commands/orders/handlePendingOr
 const startBot = require('./src/commands/startBot/startBot');
 
 
-// start and text handler need `registerCommand` to be defined first
+// start and message handler need `registerCommand` to be defined first
 bot.start(registerCommand);
 
-bot.on('text', async (ctx, next) => {
+bot.on('message', async (ctx, next) => {
   if (ctx.session && ctx.session.pendingOrder) {
     await handlePendingOrderAddress(ctx);
     return;
@@ -58,6 +59,13 @@ bot.on('text', async (ctx, next) => {
   if (ctx.session && ctx.session.editProfile) {
     await editProfileResponse(ctx);
     return;
+  }
+
+  if (ctx.session && ctx.session.editProduct) {
+    const handled = await editProductResponse(ctx);
+    if (handled !== false) {
+      return;
+    }
   }
 
   if (ctx.session && ctx.session.registration) {
@@ -131,6 +139,14 @@ bot.on('callback_query', async (ctx) => {
     return editProfileCallback(ctx);
   }
 
+  if (data.startsWith('edit_product:')) {
+    return editProductCallback(ctx);
+  }
+
+  if (data.startsWith('confirm_update:')) {
+    return editProductCallback(ctx);
+  }
+
   if (data.startsWith('category_show:')) {
     return showCategoryProductsCallback(ctx);
   }
@@ -143,8 +159,8 @@ bot.on('callback_query', async (ctx) => {
     return orderNowCallback(ctx);
   }
 
-  if (data.startsWith('view_detail:')) {
-    return viewProductDetailCallback(ctx);
+  if (data.startsWith('order_history_more:')) {
+    return orderHistoryCommand.handleMore(ctx);
   }
 
   if (data.startsWith('view_cart')) {

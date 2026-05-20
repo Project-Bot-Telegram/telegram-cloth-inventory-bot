@@ -8,11 +8,22 @@ module.exports = async (ctx) => {
   const name = text[1];
   const categoryName = text[2];
   const price = parseFloat(text[3]);
-  const quantity = text[4] ? parseInt(text[4], 10) : 0;
+
+  let quantity = 0;
+  let image;
+  if (text[4]) {
+    const parsedQty = parseInt(text[4], 10);
+    if (!isNaN(parsedQty) && String(parsedQty) === text[4]) {
+      quantity = parsedQty;
+      image = text[5];
+    } else {
+      image = text[4];
+    }
+  }
 
   if (!name || !categoryName || isNaN(price)) {
     return ctx.reply(
-      'Usage: /addproduct name category price'
+      'Usage: /addproduct name category price [quantity] [imageUrl]'
     );
   }
 
@@ -29,7 +40,8 @@ module.exports = async (ctx) => {
     name,
     category_id: category._id,
     price,
-    quantity
+    quantity,
+    image
   });
 
   // Generate sequential human-friendly product_id like 0001
