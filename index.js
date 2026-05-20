@@ -1,27 +1,8 @@
 require('dotenv').config();
 const { Telegraf, session } = require('telegraf');
-const mongoose = require('mongoose');
-const connectDB = require('./src/database/database');
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 bot.use(session());
-
-// ✅ Try to connect to MongoDB
-// ✅ If connection succeeds → Launch the bot
-const startBot = async () => {
-  const dbConnected = await connectDB();
-  if (!dbConnected) {
-    console.error('Failed to connect to database');
-    process.exit(1);
-  }
-  await bot.launch();
-  console.log('🤖 Bot launched successfully');
-};
-
-startBot().catch((err) => {
-  console.error('Failed to start bot:', err);
-  process.exit(1);
-});
 
 const registerCommand = require('./src/commands/users/register');
 const profileCommand = require('./src/commands/users/profile');
@@ -49,6 +30,11 @@ const orderHistoryCommand = require('./src/commands/orders/orderHistory');
 const confirmOrderCallback = require('./src/commands/orders/confirmOrder');
 const showCategories = require('./src/commands/categories/showCategories');
 const showCategoryProductsCallback = require('./src/commands/categories/showCategoryProducts');
+const statusCommand = require('./src/commands/connect/testDatabaseConn');
+const helpCommand = require('./src/commands/support/help');
+const supportCommand = require('./src/commands/support/support');
+const startBot = require('./src/commands/startBot/startBot');
+
 
 // start and text handler need `registerCommand` to be defined first
 bot.start(registerCommand);
@@ -62,18 +48,10 @@ bot.on('text', async (ctx, next) => {
   return next();
 });
 
-// Command to check database connection status
-bot.command('status', async (ctx) => {
-  const isConnected = mongoose.connection.readyState === 1;
-  
-  if (isConnected) {
-    ctx.reply('✅ Database is connected');
-  } else {
-    ctx.reply('❌ Database is NOT connected');
-  }
-});
+
 
 bot.command('profile', authMiddleware, profileCommand);
+bot.command('status', statusCommand);
 bot.command('admin',roleMiddleware,adminCommand);
 bot.command('addcategory', roleMiddleware, addCategory);
 bot.command('categories', authMiddleware, listCategory);
@@ -95,12 +73,10 @@ bot.command('total-user', roleMiddleware, totalUserCommand);
 bot.hears('Show product', authMiddleware, showCategories);
 bot.hears('Orders History', authMiddleware, orderHistoryCommand);
 bot.hears('View Profile', authMiddleware, profileCommand);
-bot.hears('Help', async (ctx) => {
-  return ctx.reply('Use the bot commands below or type them directly:\n/products\n/product <name|id>\n/order <product_id|name> <quantity>\n/orders\n/profile');
-});
-bot.hears('Support', async (ctx) => {
-  return ctx.reply('For support, please contact your admin or use /status to check the bot status.');
-});
+bot.hears('Help', helpCommand);
+bot.hears('Support', supportCommand);
+bot.hears(/^\/view-(\d+)(?:@\S+)?$/i, roleMiddleware, viewUserCommand);
+bot.hears(/^\/promote-(\d+)(?:@\S+)?$/i, roleMiddleware, promoteUserCommand);
 
 bot.on('callback_query', async (ctx) => {
   const data = ctx.callbackQuery && ctx.callbackQuery.data;
@@ -117,10 +93,10 @@ bot.on('callback_query', async (ctx) => {
   }
 });
 
-bot.hears(/^\/view-(\d+)(?:@\S+)?$/i, roleMiddleware, viewUserCommand);
-bot.hears(/^\/promote-(\d+)(?:@\S+)?$/i, roleMiddleware, promoteUserCommand);
-
-
-
+// Start the bot
+startBot(bot).catch((err) => {
+  console.error('Failed to start bot:', err);
+  process.exit(1);
+});
 
 module.exports = { bot };
