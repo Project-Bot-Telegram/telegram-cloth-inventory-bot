@@ -8,8 +8,7 @@ const orderSchema = new mongoose.Schema({
   },
   product_id: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Product',
-    required: true
+    ref: 'Product'
   },
   product_name: {
     type: String,
@@ -25,6 +24,19 @@ const orderSchema = new mongoose.Schema({
     required: true,
     min: 1
   },
+  cart_items: [
+    {
+      product_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Product'
+      },
+      product_name: String,
+      product_category: String,
+      product_price: Number,
+      quantity: Number,
+      total_price: Number
+    }
+  ],
   telegram_id: {
     type: Number,
     required: true
