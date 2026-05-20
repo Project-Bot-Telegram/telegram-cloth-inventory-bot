@@ -1,7 +1,9 @@
+const fs = require('fs');
 const { Markup } = require('telegraf');
 const mongoose = require('mongoose');
 const Category = require('../../models/Category');
 const Product = require('../../models/Product');
+const User = require('../../models/User');
 const { safeAnswerCbQuery } = require('../../utils/telegramHelper');
 
 module.exports = async (ctx) => {
@@ -21,6 +23,9 @@ module.exports = async (ctx) => {
     await safeAnswerCbQuery(ctx, 'Category not found.', { show_alert: true });
     return;
   }
+
+  const user = await User.findOne({ telegram_id: ctx.from.id });
+  const isAdmin = user && user.role === 'admin';
 
   const products = await Product.find({ category_id: category._id })
     .populate('category_id');
@@ -44,13 +49,34 @@ module.exports = async (ctx) => {
     else if (quantity > 0 && quantity < 5) status = 'Low stock';
 
     const displayId = product.product_id || String(product._id);
-    const message = `ID: ${displayId}\nName: ${product.name}\nCategory: ${categoryName}\nPrice: $${price}\nQuantity: ${quantity}\nStatus: ${status}`;
+    const message = `------------------------------\nID: ${displayId}\nName: ${product.name}\nPrice: $${price}\nQuantity: ${quantity}\nStatus: ${status}\n------------------------------`;
 
-    const keyboard = Markup.inlineKeyboard([
-      [Markup.button.callback('Order Now', `order_now:${product._id}`)],
-      [Markup.button.callback('add to cart', `add_cart:${product._id}`)],
-      [Markup.button.callback('view detail', `view_detail:${product._id}`)]
-    ]);
+    const buttons = [];
+    if (isAdmin) {
+      buttons.push([Markup.button.callback('Edit Product', `edit_product:start:${product._id}`)]);
+    }
+    buttons.push([Markup.button.callback('Order Now', `order_now:${product._id}`)]);
+    buttons.push([Markup.button.callback('add to cart', `add_cart:${product._id}`)]);
+    const keyboard = Markup.inlineKeyboard(buttons);
+
+    if (product.image) {
+      let photoSource = product.image;
+      if (typeof photoSource === 'string' && photoSource.startsWith('http')) {
+        photoSource = { url: photoSource };
+      } else if (typeof photoSource === 'string' && fs.existsSync(photoSource)) {
+        photoSource = { source: photoSource };
+      }
+
+      try {
+        await ctx.replyWithPhoto(photoSource, {
+          caption: message,
+          ...keyboard
+        });
+        continue;
+      } catch (err) {
+        console.error('Failed to send product image for showCategoryProducts:', err);
+      }
+    }
 
     await ctx.reply(message, keyboard);
   }

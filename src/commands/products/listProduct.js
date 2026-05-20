@@ -23,8 +23,9 @@ module.exports = async (ctx) => {
     else if (quantity > 0 && quantity < 5) status = 'Low stock';
 
     const displayId = product.product_id || String(product._id);
+    const imageLine = product.image ? `\nImage: ${product.image}` : '';
 
-    message += `\nID: ${displayId}\nName: ${product.name}\nCategory: ${categoryName}\nPrice: $${price}\nQuantity: ${quantity}\nStatus: ${status}\n\n`;
+    message += `\nID: ${displayId}\nName: ${product.name}\nCategory: ${categoryName}\nPrice: $${price}\nQuantity: ${quantity}\nStatus: ${status}${imageLine}\n\n`;
   });
 
   ctx.reply(message);

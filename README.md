@@ -34,18 +34,19 @@ npm start
 - `/addcategory <category_name>` (admin) — Create a new category. Example: `/addcategory Men`
 - `/editcategory <category_name> <new_name>` (admin) — Rename a category. Example: `/editcategory Men Mens`
 - `/deletecategory <category_name>` (admin) — Delete a category by name. Example: `/deletecategory Mens`
-- `/addproduct <name> <category> <price> [quantity]` (admin) — Add a product (category must exist). Example: `/addproduct Shirt Men 19.99 10`
-- `/products` (registered users) — List all products. Each product shows an `ID` (human-friendly `product_id` when available), name, category, price, quantity and stock status.
+- `/addproduct <name> <category> <price> [quantity] [imageUrl]` (admin) — Add a product (category must exist). Example: `/addproduct Shirt Men 19.99 10 https://example.com/shirt.png`
+- `/products` (registered users) — List all products. Each product shows an `ID` (human-friendly `product_id` when available), name, category, price, quantity, stock status, and image URL when set.
 - `Show product` (bottom keyboard button) — Open a category menu where each button shows one category plus total items in that category, then choose a category to view its products.
-- `/product <name|id>` (registered users) — Show product details. Example: `/product Shirt` or `/product 0003` (detail output includes the product `ID`).
+- `/product <name|id>` (registered users) — Show product details. Example: `/product Shirt` or `/product 0003` (detail output includes the product `ID`). Admins also see an `Edit Product` button on the product detail screen to modify the product; when editing, admins can send a photo directly or provide an image URL.
 - `/search <id|name|category|price> <query>` (registered users) — Search products by the given field.
    - Example: `/search id 0001`
    - Example: `/search name Shirt`
    - Example: `/search category Men`
    - Example: `/search price 19.99`
    - Example: `/editproduct 0001 price 24.99`
+   - Example: `/editproduct 0001 image https://example.com/shirt.png`
 - `/order <product_id|name> <quantity>` (registered users) — Place an order for a product. Example: `/order 0001 2` or `/order Shirt 2`. After placing an order, the bot sends a local QR payment image from `assets/QRpayment/QRpayment.png` and a Confirm button. Payment must be confirmed within 2 minutes or the order expires and stock is restored.
-- `/orders` (registered users) — View your order history.
+- `/orders` (registered users) — View your order history. The bot returns up to 4 orders per page and displays a `See 4 more order history` button to load the next page.
 - `/deleteproduct <productId>` (admin) — Delete a product by id. Example: `/deleteproduct 0001`
 - `/addstock <productId> <amount>` (admin) — Increase a product's stock by `<amount>`.
   - Use the `ID` shown by `/products`. `/addstock` accepts either the human-friendly `product_id` (e.g. `0001`) or the Mongo `_id`.

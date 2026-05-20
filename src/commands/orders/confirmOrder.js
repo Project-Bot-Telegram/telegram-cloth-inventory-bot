@@ -94,34 +94,34 @@ module.exports = async (ctx) => {
     const cartSummary = order.cart_items.map((item) => `- ${item.product_name} x${item.quantity} = $${item.total_price.toFixed(2)}`).join('\n');
     await ctx.reply(
       `✅ Order confirmed!\n\n` +
-      `-------------------------------------------\n` +
+      `------------------------------\n` +
       `Telegram ID: ${telegramId}\n` +
       `Full name: ${fullName}\n` +
       `Username: ${username}\n` +
       `Address: ${addressText}\n` +
-      `-------------------------------------------\n` +
+      `------------------------------\n` +
       `Order Summary:\n${cartSummary}\n` +
-      `-------------------------------------------\n` +
+      `------------------------------\n` +
       `Total: $${order.total_price.toFixed(2)}\n` +
       `Status: confirmed\n` +
-      `--------------------------------------------`
+      `------------------------------`
     );
   } else {
     await ctx.reply(
       `✅ Order confirmed!\n\n` +
-      `-------------------------------------------\n` +
+      `------------------------------\n` +
       `Telegram ID: ${telegramId}\n` +
       `Full name: ${fullName}\n` +
       `Username: ${username}\n` +
       `Address: ${addressText}\n` +
-      `-------------------------------------------\n` +
+      `------------------------------\n` +
       `Product: ${order.product_name}\n` +
       `Category: ${order.product_category}\n` +
       `Quantity: ${order.quantity}\n` +
-      `-------------------------------------------\n` +
+      `------------------------------\n` +
       `Total: $${order.total_price.toFixed(2)}\n` +
       `Status: confirmed\n` +
-      `--------------------------------------------`
+      `------------------------------`
     );
   }
 };
