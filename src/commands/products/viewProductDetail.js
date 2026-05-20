@@ -1,32 +1,29 @@
 const { Markup } = require('telegraf');
 const mongoose = require('mongoose');
 const Product = require('../../models/Product');
+const { safeAnswerCbQuery } = require('../../utils/telegramHelper');
 
-const findProduct = async (identifier) => {
-  let product = await Product.findOne({ name: identifier }).populate('category_id');
-  if (product) return product;
-
-  if (mongoose.Types.ObjectId.isValid(identifier)) {
-    product = await Product.findById(identifier).populate('category_id');
-    if (product) return product;
+const findProductById = async (id) => {
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return null;
   }
-
-  product = await Product.findOne({ product_id: identifier }).populate('category_id');
-  return product;
+  return Product.findById(id).populate('category_id');
 };
 
 module.exports = async (ctx) => {
-  const text = ctx.message.text.split(' ');
-  const identifier = text[1];
-
-  if (!identifier) {
-    return ctx.reply('Usage: /product <name|id>');
+  const callbackQuery = ctx.callbackQuery;
+  if (!callbackQuery || !callbackQuery.data || !callbackQuery.data.startsWith('view_detail:')) {
+    return;
   }
 
-  const product = await findProduct(identifier);
+  const productId = callbackQuery.data.split(':')[1];
+  const product = await findProductById(productId);
   if (!product) {
-    return ctx.reply('Product not found');
+    await safeAnswerCbQuery(ctx, 'Product not found.', { show_alert: true });
+    return;
   }
+
+  await safeAnswerCbQuery(ctx);
 
   const categoryName = product.category_id
     ? product.category_id.name
@@ -41,13 +38,10 @@ module.exports = async (ctx) => {
   else if (quantity > 0 && quantity < 5) status = 'Low stock';
 
   const displayId = product.product_id || String(product._id);
-
-  const detailText = `\nProduct Detail\n\nID: ${displayId}\nName: ${product.name}\nCategory: ${categoryName}\nPrice: $${price}\nQuantity: ${quantity}\nStatus: ${status}\nDescription: ${description}\n  `;
-
   const keyboard = Markup.inlineKeyboard([
     [Markup.button.callback('add to cart', `add_cart:${product._id}`), Markup.button.callback('Order Now', `order_now:${product._id}`)]
   ]);
 
   // Send product detail with action buttons attached below
-  return ctx.reply(detailText, keyboard);
+  await ctx.reply(`\nProduct Detail\n\nID: ${displayId}\nName: ${product.name}\nCategory: ${categoryName}\nPrice: $${price}\nQuantity: ${quantity}\nStatus: ${status}\nDescription: ${description}`, keyboard);
 };

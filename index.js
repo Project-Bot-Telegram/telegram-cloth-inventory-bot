@@ -28,6 +28,12 @@ const searchProduct = require('./src/commands/products/searchProduct');
 const placeOrderCommand = require('./src/commands/orders/placeOrder');
 const orderHistoryCommand = require('./src/commands/orders/orderHistory');
 const confirmOrderCallback = require('./src/commands/orders/confirmOrder');
+const orderNowCallback = require('./src/commands/orders/orderNow');
+const addToCartCallback = require('./src/commands/products/addToCart');
+const viewProductDetailCallback = require('./src/commands/products/viewProductDetail');
+const viewCartCallback = require('./src/commands/products/viewCart');
+const clearCartCallback = require('./src/commands/products/clearCart');
+const orderAllCartCallback = require('./src/commands/products/orderAllCart');
 const showCategories = require('./src/commands/categories/showCategories');
 const showCategoryProductsCallback = require('./src/commands/categories/showCategoryProducts');
 const statusCommand = require('./src/commands/connect/testDatabaseConn');
@@ -68,6 +74,7 @@ bot.command('clearstock', roleMiddleware, clearStock);
 bot.command('search', authMiddleware, searchProduct);
 bot.command('order', authMiddleware, placeOrderCommand);
 bot.command('orders', authMiddleware, orderHistoryCommand);
+bot.command('cart', authMiddleware, viewCartCallback);
 bot.command('total-user', roleMiddleware, totalUserCommand);
 
 bot.hears('Show product', authMiddleware, showCategories);
@@ -90,6 +97,30 @@ bot.on('callback_query', async (ctx) => {
 
   if (data.startsWith('category_show:')) {
     return showCategoryProductsCallback(ctx);
+  }
+
+  if (data.startsWith('add_cart:')) {
+    return addToCartCallback(ctx);
+  }
+
+  if (data.startsWith('order_now:')) {
+    return orderNowCallback(ctx);
+  }
+
+  if (data.startsWith('view_detail:')) {
+    return viewProductDetailCallback(ctx);
+  }
+
+  if (data.startsWith('view_cart')) {
+    return viewCartCallback(ctx);
+  }
+
+  if (data.startsWith('clear_cart')) {
+    return clearCartCallback(ctx);
+  }
+
+  if (data.startsWith('order_all_cart')) {
+    return orderAllCartCallback(ctx);
   }
 });
 

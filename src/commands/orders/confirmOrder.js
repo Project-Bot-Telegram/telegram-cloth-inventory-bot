@@ -3,6 +3,7 @@ const User = require('../../models/User');
 const Order = require('../../models/Order');
 const Product = require('../../models/Product');
 const { clearPendingOrderExpiration } = require('../../utils/orderHelper');
+const { safeAnswerCbQuery } = require('../../utils/telegramHelper');
 
 const findProductById = async (productId) => {
   if (!mongoose.Types.ObjectId.isValid(productId)) return null;
@@ -22,24 +23,24 @@ module.exports = async (ctx) => {
 
   const orderId = data.split(':')[1];
   if (!mongoose.Types.ObjectId.isValid(orderId)) {
-    await ctx.answerCbQuery('Invalid order confirmation.');
+    await safeAnswerCbQuery(ctx, 'Invalid order confirmation.');
     return;
   }
 
   const user = await User.findOne({ telegram_id: ctx.from.id });
   if (!user) {
-    await ctx.answerCbQuery('Please register first by sending /start.', { show_alert: true });
+    await safeAnswerCbQuery(ctx, 'Please register first by sending /start.', { show_alert: true });
     return;
   }
 
   const order = await Order.findById(orderId);
   if (!order) {
-    await ctx.answerCbQuery('Order not found.', { show_alert: true });
+    await safeAnswerCbQuery(ctx, 'Order not found.', { show_alert: true });
     return;
   }
 
   if (!order.user_id.equals(user._id)) {
-    await ctx.answerCbQuery('This order belongs to another user.', { show_alert: true });
+    await safeAnswerCbQuery(ctx, 'This order belongs to another user.', { show_alert: true });
     return;
   }
 
@@ -47,7 +48,7 @@ module.exports = async (ctx) => {
     const message = order.status === 'confirmed'
       ? 'This order is already confirmed.'
       : 'This order is no longer pending.';
-    await ctx.answerCbQuery(message, { show_alert: true });
+    await safeAnswerCbQuery(ctx, message, { show_alert: true });
     return;
   }
 
@@ -56,13 +57,24 @@ module.exports = async (ctx) => {
     await order.save();
     clearPendingOrderExpiration(orderId);
 
-    const expiredProduct = await findProductById(order.product_id);
-    if (expiredProduct) {
-      expiredProduct.quantity += order.quantity;
-      await expiredProduct.save();
+    if (order.cart_items && order.cart_items.length > 0) {
+      for (const item of order.cart_items) {
+        if (!item.product_id) continue;
+        const expiredProduct = await findProductById(item.product_id);
+        if (expiredProduct) {
+          expiredProduct.quantity += item.quantity;
+          await expiredProduct.save();
+        }
+      }
+    } else {
+      const expiredProduct = await findProductById(order.product_id);
+      if (expiredProduct) {
+        expiredProduct.quantity += order.quantity;
+        await expiredProduct.save();
+      }
     }
 
-    await ctx.answerCbQuery('Order has expired. Please place a new order.', { show_alert: true });
+    await safeAnswerCbQuery(ctx, 'Order has expired. Please place a new order.', { show_alert: true });
     return;
   }
 
@@ -70,6 +82,12 @@ module.exports = async (ctx) => {
   await order.save();
   clearPendingOrderExpiration(orderId);
 
-  await ctx.answerCbQuery('Payment confirmed!');
-  await ctx.reply(`✅ Order confirmed!\n\nProduct: ${order.product_name}\nCategory: ${order.product_category}\nQuantity: ${order.quantity}\nTotal: $${order.total_price.toFixed(2)}\nStatus: confirmed`);
+  await safeAnswerCbQuery(ctx, 'Payment confirmed!');
+
+  if (order.cart_items && order.cart_items.length > 0) {
+    const cartSummary = order.cart_items.map((item) => `- ${item.product_name} x${item.quantity} = $${item.total_price.toFixed(2)}`).join('\n');
+    await ctx.reply(`✅ Order confirmed!\n\nCart order:\n${cartSummary}\n\nTotal: $${order.total_price.toFixed(2)}\nStatus: confirmed`);
+  } else {
+    await ctx.reply(`✅ Order confirmed!\n\nProduct: ${order.product_name}\nCategory: ${order.product_category}\nQuantity: ${order.quantity}\nTotal: $${order.total_price.toFixed(2)}\nStatus: confirmed`);
+  }
 };
