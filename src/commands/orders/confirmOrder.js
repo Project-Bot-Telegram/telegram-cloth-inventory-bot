@@ -6,6 +6,51 @@ const { clearPendingOrderExpiration } = require('../../utils/orderHelper');
 const { safeAnswerCbQuery } = require('../../utils/telegramHelper');
 const { Markup } = require('telegraf');
 
+const getShortOrderId = (id) => {
+  try {
+    const hex = id.toString();
+    const last6 = hex.slice(-6);
+    const num = parseInt(last6, 16);
+    return num.toString().padStart(8, '0');
+  } catch (e) {
+    return id.toString();
+  }
+};
+
+const maskFullName = (name) => {
+  if (!name) return 'N/A';
+  const parts = name.split(' ').filter(Boolean);
+  if (parts.length === 0) return 'N/A';
+  if (parts.length === 1) {
+    const w = parts[0];
+    if (w.length <= 2) return '*'.repeat(w.length);
+    const first = w.slice(0, 2);
+    const rest = '*'.repeat(w.length - 2);
+    return `${first}${rest}`;
+  }
+  const first = parts[0];
+  const last = parts[parts.length - 1];
+  const firstMasked = first.length <= 2 ? '*'.repeat(first.length) : `${first.slice(0,2)}${'*'.repeat(Math.max(1, first.length - 2))}`;
+  const lastMasked = last.length <= 2 ? '*'.repeat(last.length) : `${'*'.repeat(Math.max(0, last.length - 2))}${last.slice(-2)}`;
+  // keep middle names fully masked
+  const middleMasked = parts.slice(1, -1).map((w) => '*'.repeat(w.length)).join(' ');
+  return [firstMasked, middleMasked, lastMasked].filter(Boolean).join(' ').replace(/\s+/g, ' ');
+};
+
+const maskTelegramId = (id) => {
+  if (id === undefined || id === null) return 'N/A';
+  const s = String(id);
+  if (s.length <= 4) return '*'.repeat(s.length);
+  return `${s.slice(0,2)}${'*'.repeat(Math.max(0, s.length - 4))}${s.slice(-2)}`;
+};
+
+const maskUsername = (u) => {
+  if (!u) return 'N/A';
+  const s = String(u);
+  if (s.length <= 2) return '*'.repeat(s.length);
+  return `${s.slice(0,2)}${'*'.repeat(Math.max(1, s.length - 4))}${s.slice(-2)}`;
+};
+
 const findProductById = async (productId) => {
   if (!mongoose.Types.ObjectId.isValid(productId)) return null;
   return Product.findById(productId);
@@ -15,6 +60,19 @@ const notifyAdminsAboutConfirmedOrder = async (ctx, order, buyer) => {
   try {
     const admins = await User.find({ role: 'admin' });
     const buyerName = buyer.full_name || buyer.username || 'N/A';
+    
+
+    const maskName = (name) => {
+      if (!name) return 'N/A';
+      return name.split(' ').map((word) => {
+        if (word.length <= 2) return '*'.repeat(word.length);
+        const first = word.slice(0, 2);
+        const last = word.length > 4 ? word.slice(-2) : '';
+        const middleLen = word.length - (last ? 4 : 2);
+        const middle = '*'.repeat(Math.max(middleLen, 1));
+        return last ? `${first}${middle}${last}` : `${first}${middle}`;
+      }).join(' ');
+    };
     const summary = order.cart_items && order.cart_items.length > 0
       ? order.cart_items.map((item) => `- ${item.product_name} x${item.quantity} = $${item.total_price.toFixed(2)}`).join('\n')
       : `Product: ${order.product_name}\nCategory: ${order.product_category}\nQuantity: ${order.quantity}`;
@@ -28,10 +86,10 @@ const notifyAdminsAboutConfirmedOrder = async (ctx, order, buyer) => {
       `Username: ${buyer.username || 'N/A'}\n` +
       `Address: ${order.address || 'N/A'}\n` +
       '------------------------------\n' +
-      `Order ID: ${order._id}\n` +
-      `Status: confirmed\n` +
+      `Order ID: ${getShortOrderId(order._id)}\n` +
       '------------------------------\n' +
       `Order Summary:\n${summary}\n` +
+      `Status: confirmed\n` +
       '------------------------------\n' +
       `Total: $${order.total_price.toFixed(2)}\n` +
       '------------------------------';
@@ -53,9 +111,38 @@ const notifyAdminsAboutConfirmedOrder = async (ctx, order, buyer) => {
     const channelId = process.env.ORDER_CHANNEL_ID;
     if (channelId) {
       try {
-        await ctx.telegram.sendMessage(channelId, message, {
-          reply_markup: keyboard.reply_markup
-        });
+            const botInfo = ctx.botInfo || await ctx.telegram.getMe();
+            const botLink = botInfo && botInfo.username
+              ? `https://t.me/${botInfo.username}`
+              : (process.env.BOT_USERNAME ? `https://t.me/${process.env.BOT_USERNAME}` : 'https://t.me/');
+
+            const channelMessage = '' +
+              '------------------------------\n' +
+              'New Confirmed Order\n' +
+              '------------------------------\n' +
+              `Full name: ${maskFullName(buyerName)}\n` +
+              `Telegram ID: ${maskTelegramId(buyer.telegram_id || '')}\n` +
+              `Username: ${maskUsername(buyer.username || '')}\n` +
+              `Address: ${order.address ? '*****' : 'N/A'}\n` +
+              '------------------------------\n' +
+              `Order ID: ${getShortOrderId(order._id)}\n` +
+              '------------------------------\n' +
+              `Order Summary:\n${summary}\n` +
+              `Status: confirmed\n` +
+              '------------------------------\n' +
+              `Total: $${order.total_price.toFixed(2)}\n` +
+              '------------------------------';
+
+            const channelKeyboard = Markup.inlineKeyboard([
+              [
+                Markup.button.callback('admin', `admin_order_open:${order._id}`),
+                Markup.button.url('start bot', botLink)
+              ]
+            ]);
+
+            await ctx.telegram.sendMessage(channelId, channelMessage, {
+              reply_markup: channelKeyboard.reply_markup
+            });
       } catch (err) {
         console.error('Failed to post order to channel', err);
       }
@@ -148,6 +235,7 @@ module.exports = async (ctx) => {
 
   if (order.cart_items && order.cart_items.length > 0) {
     const cartSummary = order.cart_items.map((item) => `- ${item.product_name} x${item.quantity} = $${item.total_price.toFixed(2)}`).join('\n');
+    const channelLink = 'https://t.me/+mVENegLmW-xmYmNl';
     await ctx.reply(
       `------------------------------\n` +
       `✅ Order confirmed!\n` +
@@ -157,11 +245,15 @@ module.exports = async (ctx) => {
       `Username: ${username}\n` +
       `Address: ${addressText}\n` +
       `------------------------------\n` +
+      `Order ID: ${getShortOrderId(order._id)}\n` +
       `Order Summary:\n${cartSummary}\n` +
       `------------------------------\n` +
       `Total: $${order.total_price.toFixed(2)}\n` +
       `Status: confirmed\n` +
-      `------------------------------`
+      `------------------------------`,
+      Markup.inlineKeyboard([
+        [Markup.button.url('View on channel', channelLink)]
+      ])
     );
   } else {
     await ctx.reply(
@@ -173,13 +265,17 @@ module.exports = async (ctx) => {
       `Username: ${username}\n` +
       `Address: ${addressText}\n` +
       `------------------------------\n` +
+      `Order ID: ${getShortOrderId(order._id)}\n` +
       `Product: ${order.product_name}\n` +
       `Category: ${order.product_category}\n` +
       `Quantity: ${order.quantity}\n` +
       `------------------------------\n` +
       `Total: $${order.total_price.toFixed(2)}\n` +
       `Status: confirmed\n` +
-      `------------------------------`
+      `------------------------------`,
+      Markup.inlineKeyboard([
+        [Markup.button.url('View on channel', 'https://t.me/+mVENegLmW-xmYmNl')]
+      ])
     );
   }
 };
