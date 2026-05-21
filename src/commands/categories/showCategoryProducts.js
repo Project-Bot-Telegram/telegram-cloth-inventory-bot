@@ -53,10 +53,11 @@ module.exports = async (ctx) => {
 
     const buttons = [];
     if (isAdmin) {
-      buttons.push([Markup.button.callback('Edit Product', `edit_product:start:${product._id}`)]);
+      buttons.push([Markup.button.callback('Stock', `admin_product:stock:${product._id}`), Markup.button.callback('Edit', `edit_product:start:${product._id}`), Markup.button.callback('Delete', `admin_product:delete:${product._id}`)]);
+    } else {
+      buttons.push([Markup.button.callback('Order Now', `order_now:${product._id}`)]);
+      buttons.push([Markup.button.callback('add to cart', `add_cart:${product._id}`)]);
     }
-    buttons.push([Markup.button.callback('Order Now', `order_now:${product._id}`)]);
-    buttons.push([Markup.button.callback('add to cart', `add_cart:${product._id}`)]);
     const keyboard = Markup.inlineKeyboard(buttons);
 
     if (product.image) {

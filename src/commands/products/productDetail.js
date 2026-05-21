@@ -44,12 +44,11 @@ module.exports = async (ctx) => {
   const displayId = product.product_id || String(product._id);
 
   const user = await User.findOne({ telegram_id: ctx.from.id });
-  const buttons = [
-    [Markup.button.callback('add to cart', `add_cart:${product._id}`), Markup.button.callback('Order Now', `order_now:${product._id}`)]
-  ];
-
+  const buttons = [];
   if (user && user.role === 'admin') {
-    buttons.push([Markup.button.callback('Edit Product', `edit_product:start:${product._id}`)]);
+    buttons.push([Markup.button.callback('Stock', `admin_product:stock:${product._id}`), Markup.button.callback('Edit', `edit_product:start:${product._id}`), Markup.button.callback('Delete', `admin_product:delete:${product._id}`)]);
+  } else {
+    buttons.push([Markup.button.callback('add to cart', `add_cart:${product._id}`), Markup.button.callback('Order Now', `order_now:${product._id}`)]);
   }
 
   const keyboard = Markup.inlineKeyboard(buttons);
@@ -60,7 +59,7 @@ module.exports = async (ctx) => {
     try {
       const photoSource = product.image.startsWith('http')
         ? { url: product.image }
-        : { source: product.image };
+        : product.image;
       return ctx.replyWithPhoto(
         photoSource,
         {

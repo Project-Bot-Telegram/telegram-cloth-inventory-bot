@@ -12,6 +12,7 @@ const adminCommand = require('./src/commands/admin/admin');
 const totalUserCommand = require('./src/commands/admin/totalUser');
 const viewUserCommand = require('./src/commands/admin/viewUser');
 const promoteUserCommand = require('./src/commands/admin/promoteUser');
+const adminFlow = require('./src/commands/admin/adminFlow');
 const addCategory = require('./src/commands/categories/addCategory');
 const listCategory = require('./src/commands/categories/listCategory');
 const editCategory = require('./src/commands/categories/editCategory');
@@ -35,6 +36,7 @@ const editProfileResponse = require('./src/commands/users/editProfileResponse');
 const addToCartCallback = require('./src/commands/products/addToCart');
 const editProductCallback = require('./src/commands/products/editProductCallback');
 const editProductResponse = require('./src/commands/products/editProductResponse');
+const adminProductActions = require('./src/commands/products/adminProductActions');
 const viewCartCallback = require('./src/commands/products/viewCart');
 const clearCartCallback = require('./src/commands/products/clearCart');
 const orderAllCartCallback = require('./src/commands/products/orderAllCart');
@@ -63,6 +65,20 @@ bot.on('message', async (ctx, next) => {
 
   if (ctx.session && ctx.session.editProduct) {
     const handled = await editProductResponse(ctx);
+    if (handled !== false) {
+      return;
+    }
+  }
+
+  if (ctx.session && ctx.session.adminFlow) {
+    const handled = await adminFlow.handleMessage(ctx);
+    if (handled !== false) {
+      return;
+    }
+  }
+
+  if (ctx.session && ctx.session.adminStock) {
+    const handled = await adminProductActions.handleMessage(ctx);
     if (handled !== false) {
       return;
     }
@@ -102,6 +118,8 @@ bot.command('total-user', roleMiddleware, totalUserCommand);
 bot.hears('Show product', authMiddleware, showCategories);
 bot.hears('Orders History', authMiddleware, orderHistoryCommand);
 bot.hears('View Profile', authMiddleware, profileCommand);
+bot.hears('Add Product', roleMiddleware, adminFlow.startAddProductConfirm);
+bot.hears('Add Category', roleMiddleware, adminFlow.startAddCategoryConfirm);
 bot.hears('Help', helpCommand);
 bot.hears('Support', supportCommand);
 bot.hears(/^\/view-(\d+)(?:@\S+)?$/i, roleMiddleware, viewUserCommand);
@@ -145,6 +163,14 @@ bot.on('callback_query', async (ctx) => {
 
   if (data.startsWith('confirm_update:')) {
     return editProductCallback(ctx);
+  }
+
+  if (data.startsWith('admin:')) {
+    return adminFlow.handleCallback(ctx);
+  }
+
+  if (data.startsWith('admin_product:') || data.startsWith('admin_stock:')) {
+    return adminProductActions.handleCallback(ctx);
   }
 
   if (data.startsWith('category_show:')) {
