@@ -41,6 +41,7 @@ const viewCartCallback = require('./src/commands/products/viewCart');
 const clearCartCallback = require('./src/commands/products/clearCart');
 const orderAllCartCallback = require('./src/commands/products/orderAllCart');
 const showCategories = require('./src/commands/categories/showCategories');
+const manageCategory = require('./src/commands/categories/manageCategory');
 const showCategoryProductsCallback = require('./src/commands/categories/showCategoryProducts');
 const statusCommand = require('./src/commands/connect/testDatabaseConn');
 const helpCommand = require('./src/commands/support/help');
@@ -65,6 +66,13 @@ bot.on('message', async (ctx, next) => {
 
   if (ctx.session && ctx.session.editProduct) {
     const handled = await editProductResponse(ctx);
+    if (handled !== false) {
+      return;
+    }
+  }
+
+  if (ctx.session && ctx.session.categoryEdit) {
+    const handled = await manageCategory.handleMessage(ctx);
     if (handled !== false) {
       return;
     }
@@ -116,7 +124,10 @@ bot.command('cart', authMiddleware, viewCartCallback);
 bot.command('total-user', roleMiddleware, totalUserCommand);
 
 bot.hears('Show product', authMiddleware, showCategories);
+bot.hears('Manage Product', roleMiddleware, showCategories);
+bot.hears('Manage Category', roleMiddleware, manageCategory.listCategories);
 bot.hears('Orders History', authMiddleware, orderHistoryCommand);
+bot.hears('Manage Order History', roleMiddleware, orderHistoryCommand);
 bot.hears('View Profile', authMiddleware, profileCommand);
 bot.hears('Add Product', roleMiddleware, adminFlow.startAddProductConfirm);
 bot.hears('Add Category', roleMiddleware, adminFlow.startAddCategoryConfirm);
@@ -171,6 +182,10 @@ bot.on('callback_query', async (ctx) => {
 
   if (data.startsWith('admin_product:') || data.startsWith('admin_stock:')) {
     return adminProductActions.handleCallback(ctx);
+  }
+
+  if (data.startsWith('category_info:') || data.startsWith('category_history_edit:') || data.startsWith('category_edit:') || data.startsWith('category_delete:')) {
+    return manageCategory.handleCallback(ctx);
   }
 
   if (data.startsWith('category_show:')) {
