@@ -11,6 +11,17 @@ const STATUS_LABELS = {
   delivered: 'Delivered'
 };
 
+const getShortOrderId = (id) => {
+  try {
+    const hex = id.toString();
+    const last6 = hex.slice(-6);
+    const num = parseInt(last6, 16);
+    return num.toString().padStart(8, '0');
+  } catch (e) {
+    return id.toString();
+  }
+};
+
 const buildOrderActionKeyboardRows = (order) => {
   const rows = [];
   if (order.status === 'confirmed') {
@@ -134,11 +145,13 @@ const handleCallback = async (ctx) => {
       return ctx.reply('Invalid order action selected.');
     }
 
+    const shortId = getShortOrderId(orderId);
+
     return ctx.reply(
       '------------------------------\n' +
       'Confirm Status Change\n' +
       '------------------------------\n' +
-      `Change order ${orderId} to ${status === 'expired' ? '❌expired' : '✔delivered'}?`,
+      `Change order ${shortId} to ${status === 'expired' ? '❌expired' : '✔delivered'}?`,
       Markup.inlineKeyboard([
         [
           Markup.button.callback('No', `admin_order_change_cancel:${orderId}`),
@@ -163,7 +176,8 @@ const handleCallback = async (ctx) => {
     order.status = newStatus;
     await order.save();
 
-    return ctx.reply(`Order ${orderId} status changed to ${STATUS_LABELS[newStatus]}.`);
+    const shortId = getShortOrderId(order._id);
+    return ctx.reply(`Order ${shortId} status changed to ${STATUS_LABELS[newStatus]}.`);
   }
 
   if (action === 'admin_order_change_cancel') {
