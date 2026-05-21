@@ -66,14 +66,23 @@ const handleCallback = async (ctx) => {
   }
 
   if (action === 'category_history_edit') {
-    const message = '' +
+    let message = '' +
       '------------------------------\n' +
       'Category History\n' +
       '------------------------------\n' +
       `Category: ${category.name}\n` +
-      '------------------------------\n' +
-      'No category edit history is available yet.\n' +
-      '------------------------------';
+      '------------------------------\n';
+
+    if (!category.edit_history || category.edit_history.length === 0) {
+      message += 'No category edit history is available yet.\n';
+    } else {
+      const sortedHistory = [...category.edit_history].sort((a, b) => new Date(b.edited_at) - new Date(a.edited_at));
+      sortedHistory.forEach((entry, index) => {
+        const editDate = new Date(entry.edited_at).toLocaleString();
+        message += `${index + 1}. "${entry.old_name}" → "${entry.new_name}" \n    at: ${editDate}\n`;
+      });
+    }
+    message += '------------------------------';
 
     return ctx.reply(message);
   }
@@ -122,6 +131,14 @@ const handleMessage = async (ctx) => {
   }
 
   category.name = text;
+  if (!category.edit_history) {
+    category.edit_history = [];
+  }
+  category.edit_history.push({
+    old_name: ctx.session.categoryEdit.currentName,
+    new_name: text,
+    edited_at: new Date()
+  });
   await category.save();
   ctx.session.categoryEdit = null;
   return ctx.reply('Category updated successfully.');

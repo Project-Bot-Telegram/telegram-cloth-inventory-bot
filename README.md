@@ -27,22 +27,29 @@ npm start
 ## Bot Commands
 
 - `/start` - Register new users or welcome returning users by full name. After registration, the bot shows a bottom menu with buttons like `Show product`, `Orders History`, `View Profile`, `Help`, and `Support`.
-- `/profile` - Display your registered profile information.
 - `/status` - Check MongoDB connection status.
 - `/admin` - Show the admin panel (admin role only).
 - `Add Product` / `Add Category` - Admin-only buttons shown in the main menu for guided creation flows.
 
 ## Category & Product Management
 
-- `/addcategory <category_name>` (admin) — Create a new category.
-- `/editcategory <category_name> <new_name>` (admin) — Rename a category.
-- `/deletecategory <category_name>` (admin) — Delete a category.
-- `/addproduct <name> <category> <price> [quantity] [imageUrl]` (admin) — Add a product. Example: `/addproduct Shirt Men 19.99 10 https://example.com/shirt.png`
-- `/products` (registered users) — List all products with ID, name, category, price, quantity, and stock status.
-- `/product <name|id>` (registered users) — Show product details.
+Most category and product management actions are handled through buttons in the admin panel rather than slash commands.
+
+- Admins can use `Add Product` and `Add Category` buttons to begin guided creation flows.
+- Categories are listed with product counts, and tapping a category shows its products.
+- Product detail screens include admin actions for `Stock`, `Edit`, and `Delete`.
+- The `Stock` action exposes additional admin controls for `Add stock`, `Out stock`, and `Clear stock`.
+
+### Search and ordering
+
 - `/search <field> <query>` (registered users) — Search products by `id`, `name`, `category`, or `price`.
-- `/editproduct <productId> <field> <value>` (admin) — Edit a product field.
-- `/deleteproduct <productId>` (admin) — Delete a product by ID.
+- `/cart` (registered users) — View cart contents and proceed to order.
+
+### Admin actions
+
+- `/total-user` — Display the total number of registered users.
+- `/view-<user_id>` — View a specific user's profile information. Example: `/view-1655512983`
+- `/promote-<user_id>` — Promote a user to admin. Example: `/promote-1655512983`
 
 ### Admin buttons and detail actions
 
@@ -54,18 +61,16 @@ npm start
 
 ## Stock Management
 
-- `/addstock <productId> <amount>` (admin) — Increase stock.
-- `/outstock <productId> <amount>` (admin) — Decrease stock without going below zero.
-- `/clearstock <productId>` (admin) — Reset stock to zero.
+- Stock changes are managed through the admin product detail workflow and `Stock` actions in the UI.
 
 Stock changes are recorded in each product's `stock_history`, including additions, removals, clears, purchases, and restore operations.
 
 ## Orders
 
-- `/order <product_id|name> <quantity>` (registered users) — Place an order for a product.
+- Orders are placed through the button-driven workflow on product details and cart screens.
 - Order confirmation uses a local QR payment image at `assets/QRpayment/QRpayment.png`.
 - Users must confirm payment within 2 minutes or the order expires and reserved stock is restored.
-- `/orders` (registered users) — View order history, 4 orders per page with a `See 4 more order history` button.
+- `Orders History` button shows order history, 4 orders per page with a `See 4 more order history` button.
 
 ## User Roles
 
@@ -73,13 +78,13 @@ The bot supports two roles:
 
 ### Staff (default)
 - Can register with `/start`.
-- Can view profile with `/profile`.
+- Can view profile via the `View Profile` button.
 - Can browse categories and products.
-- Can place orders and view order history.
+- Can place orders and view order history via buttons.
 
 ### Admin
 - Has all staff privileges.
-- Can use admin-only commands and buttons.
+- Can use admin-only buttons and controls.
 - Can manage categories, products, and stock.
 - Can view admin product actions and stock history.
 

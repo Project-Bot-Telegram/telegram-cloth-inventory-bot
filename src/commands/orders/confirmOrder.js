@@ -4,10 +4,65 @@ const Order = require('../../models/Order');
 const Product = require('../../models/Product');
 const { clearPendingOrderExpiration } = require('../../utils/orderHelper');
 const { safeAnswerCbQuery } = require('../../utils/telegramHelper');
+const { Markup } = require('telegraf');
 
 const findProductById = async (productId) => {
   if (!mongoose.Types.ObjectId.isValid(productId)) return null;
   return Product.findById(productId);
+};
+
+const notifyAdminsAboutConfirmedOrder = async (ctx, order, buyer) => {
+  try {
+    const admins = await User.find({ role: 'admin' });
+    const buyerName = buyer.full_name || buyer.username || 'N/A';
+    const summary = order.cart_items && order.cart_items.length > 0
+      ? order.cart_items.map((item) => `- ${item.product_name} x${item.quantity} = $${item.total_price.toFixed(2)}`).join('\n')
+      : `Product: ${order.product_name}\nCategory: ${order.product_category}\nQuantity: ${order.quantity}`;
+
+    const message = '' +
+      '------------------------------\n' +
+      'New Confirmed Order\n' +
+      '------------------------------\n' +
+      `Buyer: ${buyerName}\n` +
+      `Telegram ID: ${buyer.telegram_id || 'N/A'}\n` +
+      `Username: ${buyer.username || 'N/A'}\n` +
+      `Address: ${order.address || 'N/A'}\n` +
+      '------------------------------\n' +
+      `Order ID: ${order._id}\n` +
+      `Status: confirmed\n` +
+      '------------------------------\n' +
+      `Order Summary:\n${summary}\n` +
+      '------------------------------\n' +
+      `Total: $${order.total_price.toFixed(2)}\n` +
+      '------------------------------';
+
+    const keyboard = Markup.inlineKeyboard([
+      [
+        Markup.button.callback('❌expired', `admin_order_change:${order._id}:expired`),
+        Markup.button.callback('✔delivered', `admin_order_change:${order._id}:delivered`)
+      ]
+    ]);
+
+    await Promise.all(admins
+      .filter((admin) => admin.telegram_id && admin.telegram_id !== buyer.telegram_id)
+      .map((admin) => ctx.telegram.sendMessage(admin.telegram_id, message, {
+        reply_markup: keyboard.reply_markup
+      })));
+
+    // Also post the order to a dedicated channel if configured
+    const channelId = process.env.ORDER_CHANNEL_ID;
+    if (channelId) {
+      try {
+        await ctx.telegram.sendMessage(channelId, message, {
+          reply_markup: keyboard.reply_markup
+        });
+      } catch (err) {
+        console.error('Failed to post order to channel', err);
+      }
+    }
+  } catch (error) {
+    console.error('Failed to notify admins about confirmed order:', error);
+  }
 };
 
 module.exports = async (ctx) => {
@@ -82,6 +137,7 @@ module.exports = async (ctx) => {
   await order.save();
   clearPendingOrderExpiration(orderId);
 
+  await notifyAdminsAboutConfirmedOrder(ctx, order, user);
   await safeAnswerCbQuery(ctx, 'Payment confirmed!');
 
   const fullName = user.full_name || 'N/A';
@@ -93,7 +149,8 @@ module.exports = async (ctx) => {
   if (order.cart_items && order.cart_items.length > 0) {
     const cartSummary = order.cart_items.map((item) => `- ${item.product_name} x${item.quantity} = $${item.total_price.toFixed(2)}`).join('\n');
     await ctx.reply(
-      `✅ Order confirmed!\n\n` +
+      `------------------------------\n` +
+      `✅ Order confirmed!\n` +
       `------------------------------\n` +
       `Telegram ID: ${telegramId}\n` +
       `Full name: ${fullName}\n` +
@@ -108,7 +165,8 @@ module.exports = async (ctx) => {
     );
   } else {
     await ctx.reply(
-      `✅ Order confirmed!\n\n` +
+      `------------------------------\n` +
+      `✅ Order confirmed!\n` +
       `------------------------------\n` +
       `Telegram ID: ${telegramId}\n` +
       `Full name: ${fullName}\n` +

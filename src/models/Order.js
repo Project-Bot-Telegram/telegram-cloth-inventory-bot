@@ -51,6 +51,7 @@ const orderSchema = new mongoose.Schema({
   },
   status: {
     type: String,
+    enum: ['pending', 'expired', 'confirmed', 'delivered'],
     default: 'pending'
   },
   expires_at: {

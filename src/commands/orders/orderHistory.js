@@ -4,6 +4,11 @@ const User = require('../../models/User');
 const { safeAnswerCbQuery } = require('../../utils/telegramHelper');
 
 const PAGE_SIZE = 4;
+const STATUS_LABELS = {
+  expired: 'Expired',
+  confirmed: 'Confirmed',
+  delivered: 'Delivered'
+};
 
 const buildOrderMessage = (order, index, user) => {
   const createdAt = order.created_at
@@ -40,11 +45,11 @@ const buildOrderMessage = (order, index, user) => {
   return orderText;
 };
 
-const sendOrderHistoryPage = async (ctx, user, orders, startIndex, isCallback = false) => {
+const sendOrderHistoryPage = async (ctx, user, orders, startIndex, status = null, isCallback = false) => {
   const page = orders.slice(startIndex, startIndex + PAGE_SIZE);
   if (page.length === 0) {
     if (isCallback) {
-      await safeAnswerCbQuery(ctx, 'No more order history to show.');
+      await safeAnswerCbQuery(ctx, `No more ${status ? STATUS_LABELS[status] : ''} order history to show.`);
     }
     return;
   }
@@ -56,7 +61,7 @@ const sendOrderHistoryPage = async (ctx, user, orders, startIndex, isCallback = 
   const remaining = orders.length - (startIndex + PAGE_SIZE);
   const keyboard = remaining > 0
     ? Markup.inlineKeyboard([
-      [Markup.button.callback(`See ${Math.min(PAGE_SIZE, remaining)} more order history`, `order_history_more:${startIndex + PAGE_SIZE}`)]
+      [Markup.button.callback(`See ${Math.min(PAGE_SIZE, remaining)} more`, `order_history_more:${status || 'all'}:${startIndex + PAGE_SIZE}`)]
     ])
     : null;
 
@@ -68,20 +73,53 @@ const sendOrderHistoryPage = async (ctx, user, orders, startIndex, isCallback = 
   }
 };
 
+const showOrderStatusMenu = async (ctx) => {
+  return ctx.reply(
+    '------------------------------\n' +
+    'Order History\n' +
+    '------------------------------\n' +
+    'Choose a status to view:',
+    Markup.inlineKeyboard([
+      [Markup.button.callback('expired', 'order_history_status:expired')],
+      [Markup.button.callback('confirmed', 'order_history_status:confirmed')],
+      [Markup.button.callback('delivered', 'order_history_status:delivered')]
+    ])
+  );
+};
+
 const orderHistoryCommand = async (ctx) => {
   const user = await User.findOne({ telegram_id: ctx.from.id });
   if (!user) {
     return ctx.reply('Please register first by sending /start.');
   }
 
-  const orders = await Order.find({ user_id: user._id })
-    .sort({ created_at: -1 });
+  return showOrderStatusMenu(ctx);
+};
 
-  if (orders.length === 0) {
-    return ctx.reply('You have no order history yet. Use /order to place your first order.');
+orderHistoryCommand.handleStatus = async (ctx) => {
+  const callbackData = ctx.callbackQuery && ctx.callbackQuery.data;
+  if (!callbackData) {
+    return;
   }
 
-  await sendOrderHistoryPage(ctx, user, orders, 0);
+  const [, status] = callbackData.split(':');
+  if (!STATUS_LABELS[status]) {
+    await safeAnswerCbQuery(ctx, 'Invalid status selection.');
+    return;
+  }
+
+  const user = await User.findOne({ telegram_id: ctx.from.id });
+  if (!user) {
+    await safeAnswerCbQuery(ctx, 'Please register first by sending /start.');
+    return;
+  }
+
+  const orders = await Order.find({ user_id: user._id, status }).sort({ created_at: -1 });
+  if (orders.length === 0) {
+    return ctx.reply(`No ${STATUS_LABELS[status]} orders found.`);
+  }
+
+  return sendOrderHistoryPage(ctx, user, orders, 0, status);
 };
 
 orderHistoryCommand.handleMore = async (ctx) => {
@@ -90,7 +128,17 @@ orderHistoryCommand.handleMore = async (ctx) => {
     return;
   }
 
-  const [, offsetString] = callbackData.split(':');
+  const parts = callbackData.split(':');
+  let status = null;
+  let offsetString = null;
+
+  if (parts.length === 2) {
+    offsetString = parts[1];
+  } else {
+    status = parts[1] === 'all' ? null : parts[1];
+    offsetString = parts[2];
+  }
+
   const offset = parseInt(offsetString, 10);
   if (Number.isNaN(offset) || offset < 0) {
     await safeAnswerCbQuery(ctx, 'Invalid history page.');
@@ -103,16 +151,20 @@ orderHistoryCommand.handleMore = async (ctx) => {
     return;
   }
 
-  const orders = await Order.find({ user_id: user._id })
-    .sort({ created_at: -1 });
+  const query = { user_id: user._id };
+  if (status) query.status = status;
+
+  const orders = await Order.find(query).sort({ created_at: -1 });
 
   if (orders.length === 0) {
-    await safeAnswerCbQuery(ctx, 'You have no order history yet.');
+    await safeAnswerCbQuery(ctx, `No ${status ? STATUS_LABELS[status] : ''} order history found.`);
     return;
   }
 
-  await sendOrderHistoryPage(ctx, user, orders, offset, true);
+  await sendOrderHistoryPage(ctx, user, orders, offset, status, true);
 };
 
 module.exports = orderHistoryCommand;
+module.exports.buildOrderMessage = buildOrderMessage;
+module.exports.handleStatus = orderHistoryCommand.handleStatus;
 
