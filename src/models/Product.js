@@ -25,6 +25,21 @@ const productSchema = new mongoose.Schema({
   quantity: {
     type: Number,
     default: 0
+  },
+  stock_history: {
+    type: [
+      new mongoose.Schema({
+        date: {
+          type: Date,
+          default: Date.now
+        },
+        change: Number,
+        from: Number,
+        to: Number,
+        type: String
+      }, { _id: false })
+    ],
+    default: []
   }
 });
 

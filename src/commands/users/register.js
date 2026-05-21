@@ -20,7 +20,7 @@ const startRegistration = async (ctx) => {
     }
   };
 
-  await ctx.reply('Welcome to bot!', mainMenuKeyboard());
+  await ctx.reply('Welcome to bot!', mainMenuKeyboard(false));
   await ctx.reply('Let’s register your profile.');
   await ctx.reply(registrationQuestions[0].prompt);
 };
@@ -43,7 +43,7 @@ const handleRegistrationResponse = async (ctx, text) => {
 
   ctx.session.registration = null;
 
-  await ctx.reply(`Thanks ${user.full_name}! Your registration is complete.`, mainMenuKeyboard());
+  await ctx.reply(`Thanks ${user.full_name}! Your registration is complete.`, mainMenuKeyboard(user.role === 'admin'));
 };
 
 module.exports = async (ctx) => {
@@ -60,7 +60,7 @@ module.exports = async (ctx) => {
     }
 
     const displayName = existingUser.full_name || existingUser.username || 'there';
-    return ctx.reply(`Welcome back, ${displayName}!`, mainMenuKeyboard());
+    return ctx.reply(`Welcome back, ${displayName}!`, mainMenuKeyboard(existingUser.role === 'admin'));
   }
 
   if (ctx.session && ctx.session.registration) {

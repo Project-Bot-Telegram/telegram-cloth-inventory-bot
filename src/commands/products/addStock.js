@@ -36,7 +36,21 @@ module.exports = async (ctx) => {
   const product = await findProduct(productId);
   if (!product) return ctx.reply('Product not found');
 
-  product.quantity = (typeof product.quantity === 'number' ? product.quantity : 0) + amount;
+  const currentQuantity = typeof product.quantity === 'number' ? product.quantity : 0;
+  product.quantity = currentQuantity + amount;
+  if (!Array.isArray(product.stock_history)) {
+    product.stock_history = (product.stock_history && typeof product.stock_history === 'object') ? [product.stock_history] : [];
+  }
+  product.stock_history.push({
+    date: new Date(),
+    change: amount,
+    from: currentQuantity,
+    to: product.quantity,
+    type: 'add'
+  });
+  if (product.stock_history.length > 20) {
+    product.stock_history = product.stock_history.slice(-20);
+  }
   await product.save();
 
   const status = getStockStatus(product.quantity);

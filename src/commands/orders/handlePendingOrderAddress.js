@@ -25,14 +25,42 @@ const scheduleOrderExpiration = async (order, ctx) => {
         if (!item.product_id) continue;
         const expiredProduct = await Product.findById(item.product_id);
         if (expiredProduct) {
+          const oldQ = typeof expiredProduct.quantity === 'number' ? expiredProduct.quantity : 0;
           expiredProduct.quantity += item.quantity;
+          if (!Array.isArray(expiredProduct.stock_history)) {
+            expiredProduct.stock_history = (expiredProduct.stock_history && typeof expiredProduct.stock_history === 'object') ? [expiredProduct.stock_history] : [];
+          }
+          expiredProduct.stock_history.push({
+            date: new Date(),
+            change: item.quantity,
+            from: oldQ,
+            to: expiredProduct.quantity,
+            type: 'restore'
+          });
+          if (expiredProduct.stock_history.length > 20) {
+            expiredProduct.stock_history = expiredProduct.stock_history.slice(-20);
+          }
           await expiredProduct.save();
         }
       }
     } else {
       const expiredProduct = await Product.findById(pendingOrder.product_id);
       if (expiredProduct) {
+        const oldQ = typeof expiredProduct.quantity === 'number' ? expiredProduct.quantity : 0;
         expiredProduct.quantity += pendingOrder.quantity;
+        if (!Array.isArray(expiredProduct.stock_history)) {
+          expiredProduct.stock_history = (expiredProduct.stock_history && typeof expiredProduct.stock_history === 'object') ? [expiredProduct.stock_history] : [];
+        }
+        expiredProduct.stock_history.push({
+          date: new Date(),
+          change: pendingOrder.quantity,
+          from: oldQ,
+          to: expiredProduct.quantity,
+          type: 'restore'
+        });
+        if (expiredProduct.stock_history.length > 20) {
+          expiredProduct.stock_history = expiredProduct.stock_history.slice(-20);
+        }
         await expiredProduct.save();
       }
     }
@@ -70,7 +98,21 @@ const createSingleOrder = async (ctx, user, pendingOrder, address) => {
     return ctx.reply(`Not enough stock to complete the order. Available quantity: ${product.quantity}`);
   }
 
+  const oldQty = typeof product.quantity === 'number' ? product.quantity : 0;
   product.quantity -= pendingOrder.quantity;
+  if (!Array.isArray(product.stock_history)) {
+    product.stock_history = (product.stock_history && typeof product.stock_history === 'object') ? [product.stock_history] : [];
+  }
+  product.stock_history.push({
+    date: new Date(),
+    change: -pendingOrder.quantity,
+    from: oldQty,
+    to: product.quantity,
+    type: 'purchase'
+  });
+  if (product.stock_history.length > 20) {
+    product.stock_history = product.stock_history.slice(-20);
+  }
   await product.save();
 
   const productCategory = product.category_id ? product.category_id.name : 'Uncategorized';
@@ -141,7 +183,21 @@ const createCartOrder = async (ctx, user, pendingOrder, address) => {
   }
 
   for (const { product, quantity } of productsToSave) {
+    const oldQ = typeof product.quantity === 'number' ? product.quantity : 0;
     product.quantity -= quantity;
+    if (!Array.isArray(product.stock_history)) {
+      product.stock_history = (product.stock_history && typeof product.stock_history === 'object') ? [product.stock_history] : [];
+    }
+    product.stock_history.push({
+      date: new Date(),
+      change: -quantity,
+      from: oldQ,
+      to: product.quantity,
+      type: 'purchase'
+    });
+    if (product.stock_history.length > 20) {
+      product.stock_history = product.stock_history.slice(-20);
+    }
     await product.save();
   }
 
