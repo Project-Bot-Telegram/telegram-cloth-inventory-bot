@@ -31,12 +31,14 @@ module.exports = async (ctx) => {
     await safeAnswerCbQuery(ctx);
   }
 
-  let message = 'product in cart:\n';
+  let message = '' +
+    '------------------------------\n' +
+    'Cart\n' +
+    '------------------------------\n';
   for (const item of cart) {
-    message += '-------------------------\n';
     message += `${formatCartItem(item)}\n`;
+    message += '------------------------------\n';
   }
-  message += '-------------------------';
 
   const keyboard = Markup.inlineKeyboard([
     [Markup.button.callback('Order all product', 'order_all_cart')],

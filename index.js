@@ -9,24 +9,13 @@ const profileCommand = require('./src/commands/users/profile');
 const authMiddleware = require('./src/middleware/auth');
 const roleMiddleware = require('./src/middleware/role');
 const adminCommand = require('./src/commands/admin/admin');
+const statusCommand = require('./src/commands/connect/testDatabaseConn');
 const totalUserCommand = require('./src/commands/admin/totalUser');
 const viewUserCommand = require('./src/commands/admin/viewUser');
 const promoteUserCommand = require('./src/commands/admin/promoteUser');
 const adminFlow = require('./src/commands/admin/adminFlow');
-const addCategory = require('./src/commands/categories/addCategory');
 const listCategory = require('./src/commands/categories/listCategory');
-const editCategory = require('./src/commands/categories/editCategory');
-const deleteCategory = require('./src/commands/categories/deleteCategory');
-const addProduct = require('./src/commands/products/addProduct');
-const listProduct = require('./src/commands/products/listProduct');
-const productDetail = require('./src/commands/products/productDetail');
-const editProduct = require('./src/commands/products/editProduct');
-const deleteProduct = require('./src/commands/products/deleteProduct');
-const addStock = require('./src/commands/products/addStock');
-const outStock = require('./src/commands/products/outStock');
-const clearStock = require('./src/commands/products/clearStock');
 const searchProduct = require('./src/commands/products/searchProduct');
-const placeOrderCommand = require('./src/commands/orders/placeOrder');
 const orderHistoryCommand = require('./src/commands/orders/orderHistory');
 const confirmOrderCallback = require('./src/commands/orders/confirmOrder');
 const orderNowCallback = require('./src/commands/orders/orderNow');
@@ -37,13 +26,13 @@ const addToCartCallback = require('./src/commands/products/addToCart');
 const editProductCallback = require('./src/commands/products/editProductCallback');
 const editProductResponse = require('./src/commands/products/editProductResponse');
 const adminProductActions = require('./src/commands/products/adminProductActions');
+const manageOrder = require('./src/commands/admin/manageOrder');
 const viewCartCallback = require('./src/commands/products/viewCart');
 const clearCartCallback = require('./src/commands/products/clearCart');
 const orderAllCartCallback = require('./src/commands/products/orderAllCart');
 const showCategories = require('./src/commands/categories/showCategories');
 const manageCategory = require('./src/commands/categories/manageCategory');
 const showCategoryProductsCallback = require('./src/commands/categories/showCategoryProducts');
-const statusCommand = require('./src/commands/connect/testDatabaseConn');
 const helpCommand = require('./src/commands/support/help');
 const supportCommand = require('./src/commands/support/support');
 const handlePendingOrderAddress = require('./src/commands/orders/handlePendingOrderAddress');
@@ -102,30 +91,16 @@ bot.on('message', async (ctx, next) => {
 
 
 
-bot.command('profile', authMiddleware, profileCommand);
 bot.command('status', statusCommand);
-bot.command('admin',roleMiddleware,adminCommand);
-bot.command('addcategory', roleMiddleware, addCategory);
-bot.command('categories', authMiddleware, listCategory);
-bot.command('editcategory', roleMiddleware, editCategory);
-bot.command('deletecategory', roleMiddleware, deleteCategory);
-bot.command('addproduct', roleMiddleware, addProduct);
-bot.command('products', authMiddleware, listProduct);
-bot.command('product', authMiddleware, productDetail);
-bot.command('editproduct', roleMiddleware, editProduct);
-bot.command('deleteproduct', roleMiddleware, deleteProduct);
-bot.command('addstock', roleMiddleware, addStock);
-bot.command('outstock', roleMiddleware, outStock);
-bot.command('clearstock', roleMiddleware, clearStock);
+bot.command('admin', roleMiddleware, adminCommand);
 bot.command('search', authMiddleware, searchProduct);
-bot.command('order', authMiddleware, placeOrderCommand);
-bot.command('orders', authMiddleware, orderHistoryCommand);
 bot.command('cart', authMiddleware, viewCartCallback);
 bot.command('total-user', roleMiddleware, totalUserCommand);
 
 bot.hears('Show product', authMiddleware, showCategories);
 bot.hears('Manage Product', roleMiddleware, showCategories);
 bot.hears('Manage Category', roleMiddleware, manageCategory.listCategories);
+bot.hears('Manage Order', roleMiddleware, manageOrder.showStatusMenu);
 bot.hears('Orders History', authMiddleware, orderHistoryCommand);
 bot.hears('Manage Order History', roleMiddleware, orderHistoryCommand);
 bot.hears('View Profile', authMiddleware, profileCommand);
@@ -180,6 +155,10 @@ bot.on('callback_query', async (ctx) => {
     return adminFlow.handleCallback(ctx);
   }
 
+  if (data.startsWith('admin_order_status:') || data.startsWith('admin_order_status_more:') || data.startsWith('admin_order_change')) {
+    return manageOrder.handleCallback(ctx);
+  }
+
   if (data.startsWith('admin_product:') || data.startsWith('admin_stock:')) {
     return adminProductActions.handleCallback(ctx);
   }
@@ -198,6 +177,10 @@ bot.on('callback_query', async (ctx) => {
 
   if (data.startsWith('order_now:')) {
     return orderNowCallback(ctx);
+  }
+
+  if (data.startsWith('order_history_status:')) {
+    return orderHistoryCommand.handleStatus(ctx);
   }
 
   if (data.startsWith('order_history_more:')) {

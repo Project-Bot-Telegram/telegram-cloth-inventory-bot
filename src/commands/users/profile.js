@@ -12,7 +12,18 @@ module.exports = async (ctx) => {
     return ctx.reply('User not found');
   }
 
-  const message = `\nProfile Information\n\nTelegram ID: ${user.telegram_id}\nFull Name: ${user.full_name}\nUsername: ${user.username || 'N/A'}\nLanguage: ${user.language}\nAddress: ${user.address || 'N/A'}\nRole: ${user.role}\nCreated At: ${user.created_at.toLocaleString()}`;
+  const message = '' +
+    '------------------------------\n' +
+    'Profile Information\n' +
+    '------------------------------\n' +
+    `Telegram ID: ${user.telegram_id}\n` +
+    `Full Name: ${user.full_name}\n` +
+    `Username: ${user.username || 'N/A'}\n` +
+    `Language: ${user.language}\n` +
+    `Address: ${user.address || 'N/A'}\n` +
+    `Role: ${user.role}\n` +
+    `Created At: ${user.created_at.toLocaleString()}\n` +
+    '------------------------------';
 
   return ctx.reply(message, Markup.inlineKeyboard([
     [

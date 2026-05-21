@@ -75,8 +75,22 @@ const sendPaymentRequest = async (ctx, order, address, summaryText) => {
     [Markup.button.callback('Confirm payment', `confirm_order:${order._id}`)]
   ]);
 
+  const expiresText = order.expires_at ? new Date(order.expires_at).toLocaleString() : '';
+  const caption = '' +
+    '------------------------------\n' +
+    'Payment Request\n' +
+    '------------------------------\n' +
+    `Delivery address: ${address}\n` +
+    `Expires at: ${expiresText}\n` +
+    '------------------------------\n' +
+    `Order Summary:\n${summaryText}\n` +
+    '------------------------------\n' +
+    `Total: $${order.total_price.toFixed(2)}\n` +
+    '------------------------------\n' +
+    'Please pay and tap Confirm payment within 2 minutes.';
+
   return ctx.replyWithPhoto({ source: qrPath }, {
-    caption: `Delivery address: ${address}\n\nPayment and confirm within 2 minutes.\n\nOrder Summary:\n${summaryText}\n\nTotal: $${order.total_price.toFixed(2)}`,
+    caption,
     reply_markup: buttons.reply_markup
   });
 };

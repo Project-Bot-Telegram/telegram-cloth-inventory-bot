@@ -53,7 +53,18 @@ module.exports = async (ctx) => {
 
   const keyboard = Markup.inlineKeyboard(buttons);
 
-  const detailText = `\nProduct Detail\n\nID: ${displayId}\nName: ${product.name}\nCategory: ${categoryName}\nPrice: $${price}\nQuantity: ${quantity}\nStatus: ${status}\nDescription: ${description}`;
+  const detailText = '' +
+    '------------------------------\n' +
+    'Product Detail\n' +
+    '------------------------------\n' +
+    `ID: ${displayId}\n` +
+    `Name: ${product.name}\n` +
+    `Category: ${categoryName}\n` +
+    `Price: $${price}\n` +
+    `Quantity: ${quantity}\n` +
+    `Status: ${status}\n` +
+    `Description: ${description}\n` +
+    '------------------------------';
 
   if (product.image) {
     try {

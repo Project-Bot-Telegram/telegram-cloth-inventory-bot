@@ -11,9 +11,10 @@ const mainMenuKeyboard = (isAdmin = false) => {
     return Markup.keyboard(rows).resize();
   }
 
-  rows.push(['Show product', 'Orders History']);
-  rows.push(['View Profile', 'Help']);
-  rows.push(['Support']);
+  rows.push(['Show product']);
+  rows.push(['Orders History']);
+  rows.push(['Support', 'Help']);
+  rows.push(['View Profile']);
 
   return Markup.keyboard(rows).resize();
 };
