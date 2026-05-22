@@ -21,12 +21,12 @@ module.exports = async (ctx) => {
   const identifier = text[1];
 
   if (!identifier) {
-    return ctx.reply('Usage: /product <name|id>');
+    return ctx.reply('ប្រើ៖ /product <name|id>');
   }
 
   const product = await findProduct(identifier);
   if (!product) {
-    return ctx.reply('Product not found');
+    return ctx.reply('មិនឃើញផលិតផល។');
   }
 
   const categoryName = product.category_id
@@ -36,34 +36,34 @@ module.exports = async (ctx) => {
   const description = product.description || 'No description';
   const quantity = typeof product.quantity === 'number' ? product.quantity : 0;
 
-  let status = 'Out of stock';
-  if (quantity === 0) status = 'Out of stock';
-  else if (quantity > 5) status = 'In stock';
-  else if (quantity > 0 && quantity < 5) status = 'Low stock';
+  let status = 'អស់ស្តុក';
+  if (quantity === 0) status = 'អស់ស្តុក';
+  else if (quantity > 5) status = 'នៅស្តុក';
+  else if (quantity > 0 && quantity < 5) status = 'ស្តុកតិច';
 
   const displayId = product.product_id || String(product._id);
 
   const user = await User.findOne({ telegram_id: ctx.from.id });
   const buttons = [];
   if (user && user.role === 'admin') {
-    buttons.push([Markup.button.callback('Stock', `admin_product:stock:${product._id}`), Markup.button.callback('Edit', `edit_product:start:${product._id}`), Markup.button.callback('Delete', `admin_product:delete:${product._id}`)]);
+    buttons.push([Markup.button.callback('ស្តុក', `admin_product:stock:${product._id}`), Markup.button.callback('កែប្រែ', `edit_product:start:${product._id}`), Markup.button.callback('លុប', `admin_product:delete:${product._id}`)]);
   } else {
-    buttons.push([Markup.button.callback('add to cart', `add_cart:${product._id}`), Markup.button.callback('Order Now', `order_now:${product._id}`)]);
+    buttons.push([Markup.button.callback('ដាក់ទៅកាស', `add_cart:${product._id}`), Markup.button.callback('បញ្ជាទិញឥឡូវ', `order_now:${product._id}`)]);
   }
 
   const keyboard = Markup.inlineKeyboard(buttons);
 
   const detailText = '' +
     '------------------------------\n' +
-    'Product Detail\n' +
+    'ព័ត៌មានផលិតផល\n' +
     '------------------------------\n' +
     `ID: ${displayId}\n` +
-    `Name: ${product.name}\n` +
-    `Category: ${categoryName}\n` +
-    `Price: $${price}\n` +
-    `Quantity: ${quantity}\n` +
-    `Status: ${status}\n` +
-    `Description: ${description}\n` +
+    `ឈ្មោះ: ${product.name}\n` +
+    `ប្រភេទ: ${categoryName}\n` +
+    `តម្លៃ: $${price}\n` +
+    `ចំនួន: ${quantity}\n` +
+    `ស្ថានភាព: ${status}\n` +
+    `ការពិពណ៌នា: ${description}\n` +
     '------------------------------';
 
   if (product.image) {

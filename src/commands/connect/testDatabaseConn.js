@@ -5,9 +5,9 @@ const statusCommand = async (ctx) => {
   const isConnected = mongoose.connection.readyState === 1;
   
   if (isConnected) {
-    ctx.reply('✅ Database is connected');
+    ctx.reply('✅ database បានភ្ជាប់ជោគជ័យ។');
   } else {
-    ctx.reply('❌ Database is NOT connected');
+    ctx.reply('❌ មិនអាចភ្ជាប់ដេតាបាសបាន។');
   }
 };
 

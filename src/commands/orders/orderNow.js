@@ -20,19 +20,19 @@ module.exports = async (ctx) => {
   const productId = callbackQuery.data.split(':')[1];
   const user = await User.findOne({ telegram_id: ctx.from.id });
   if (!user) {
-    await safeAnswerCbQuery(ctx, 'Please register first by sending /start.', { show_alert: true });
+    await safeAnswerCbQuery(ctx, 'សូមចុះឈ្មោះជាមុនដោយផ្ញើ /start។', { show_alert: true });
     return;
   }
 
   const product = await findProductById(productId);
   if (!product) {
-    await safeAnswerCbQuery(ctx, 'Product not found.', { show_alert: true });
+    await safeAnswerCbQuery(ctx, 'មិនឃើញផលិតផល។', { show_alert: true });
     return;
   }
 
   const quantity = 1;
   if (product.quantity < quantity) {
-    await safeAnswerCbQuery(ctx, 'Not enough stock.', { show_alert: true });
+    await safeAnswerCbQuery(ctx, 'ស្តុកមិនគ្រប់គ្រាន់។', { show_alert: true });
     return;
   }
 
@@ -50,12 +50,12 @@ module.exports = async (ctx) => {
   };
 
   const buttons = Markup.inlineKeyboard([
-    [Markup.button.callback('Use profile address', 'order_address:profile')],
-    [Markup.button.callback('Use new address', 'order_address:new')]
+    [Markup.button.callback('ប្រើអាសយដ្ឋានប្រវត្តិ', 'order_address:profile')],
+    [Markup.button.callback('ប្រើអាសយដ្ឋានថ្មី', 'order_address:new')]
   ]);
 
   return ctx.reply(
-    `Choose delivery address for ${product.name}:`,
+    `សូមជ្រើសអាសយដ្ឋានដឹកជញ្ជូនសម្រាប់ ${product.name}:`,
     buttons
   );
 };

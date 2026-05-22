@@ -6,17 +6,17 @@ const User = require('../../models/User');
 const { safeAnswerCbQuery } = require('../../utils/telegramHelper');
 
 const productSteps = [
-  { key: 'name', prompt: 'Send the product name.' },
-  { key: 'category', prompt: 'Send the product category.' },
-  { key: 'price', prompt: 'Send the product price.' },
-  { key: 'quantity', prompt: 'Send the product quantity.' },
-  { key: 'image', prompt: 'Send the product photo or image URL.' }
+  { key: 'name', prompt: 'សូមបញ្ចូលឈ្មោះផលិតផលថ្មីរបស់អ្នក:' },
+  { key: 'category', prompt: 'សូមបញ្ចូលប្រភេទឲ្យផលិតផល:' },
+  { key: 'price', prompt: 'សូមបញ្ចូលតម្លៃឲ្យផលិតផល:' },
+  { key: 'quantity', prompt: 'សូមបញ្ចូលចំនួនផលិតផល:' },
+  { key: 'image', prompt: 'សូមបញ្ចូលរូបភាពរបស់ផលិតផល:' }
 ];
 
 const getAdminFlowUser = async (ctx) => {
   const user = await User.findOne({ telegram_id: ctx.from.id });
   if (!user || user.role !== 'admin') {
-    await ctx.reply('Admin only command');
+    await ctx.reply('មុខងារនេះសម្រាប់តែអ្នកគ្រប់គ្រង(admin)តែប៉ុណ្ណោះ!!');
     return null;
   }
   return user;
@@ -34,11 +34,11 @@ const startAddProductConfirm = async (ctx) => {
   };
 
   return ctx.reply(
-    'Do you want to add a new product?',
+    'តើអ្នកពិតជាចង់បន្ថែមផលិតផលថ្មីតើមែនទេ?',
     Markup.inlineKeyboard([
       [
-        Markup.button.callback('Cancel', 'admin:add_product:cancel'),
-        Markup.button.callback('Continue add', 'admin:add_product:continue')
+        Markup.button.callback('បោះបង់', 'admin:add_product:cancel'),
+        Markup.button.callback('បន្តបន្ថែម', 'admin:add_product:continue')
       ]
     ])
   );
@@ -56,23 +56,22 @@ const startAddCategoryConfirm = async (ctx) => {
   };
 
   return ctx.reply(
-    'Do you want to add a new category?',
+    'តើអ្នកពិតជាចង់បន្ថែមប្រភេទផលិតផលថ្មីមែនទេ?',
     Markup.inlineKeyboard([
       [
-        Markup.button.callback('Cancel', 'admin:add_category:cancel'),
-        Markup.button.callback('Continue add', 'admin:add_category:continue')
+        Markup.button.callback('បោះបង់', 'admin:add_category:cancel'),
+        Markup.button.callback('បន្តបន្ថែម', 'admin:add_category:continue')
       ]
     ])
   );
 };
 
 const sendProductConfirmation = async (ctx, data) => {
-  const message = `Please confirm the new product information:\n\n` +
-    `Name: ${data.name}\n` +
-    `Category: ${data.category}\n` +
-    `Price: $${data.price.toFixed(2)}\n` +
-    `Quantity: ${data.quantity}\n` +
-    `Image: ${data.image || 'None'}`;
+  const message = `សូមធ្វើការផ្ទៀងផ្ទាត់ព័ត៌មានផលិតផលថ្មីរបស់អ្នក:\n\n` +
+    `ឈ្មោះ: ${data.name}\n` +
+    `ប្រភេទ: ${data.category}\n` +
+    `តម្លៃ: $${data.price.toFixed(2)}\n` +
+    `ចំនួន: ${data.quantity}\n`;
 
   const keyboard = Markup.inlineKeyboard([
     [
@@ -100,7 +99,7 @@ const sendProductConfirmation = async (ctx, data) => {
 };
 
 const sendCategoryConfirmation = async (ctx, data) => {
-  const message = `Please confirm the new category:\n\nName: ${data.name}`;
+  const message = `សូមធ្វើការផ្ទៀងផ្ទាត់ប្រភេទផលិតផលថ្មីរបស់អ្នក:\n\nឈ្មោះ: ${data.name}`;
 
   return ctx.reply(
     message,
@@ -121,7 +120,7 @@ const startAddProductFlow = async (ctx) => {
     data: {}
   };
 
-  await ctx.reply('Send the product name.');
+  await ctx.reply('សូមបញ្ចូលឈ្មោះផលិតផលថ្មីរបស់អ្នក:');
 };
 
 const startAddCategoryFlow = async (ctx) => {
@@ -132,7 +131,7 @@ const startAddCategoryFlow = async (ctx) => {
     data: {}
   };
 
-  await ctx.reply('Send the category name.');
+  await ctx.reply('សូមបញ្ចូលឈ្មោះប្រភេទផលិតផលថ្មីរបស់អ្នក:');
 };
 
 const handleCallback = async (ctx) => {
@@ -155,7 +154,7 @@ const handleCallback = async (ctx) => {
     if (action === 'cancel') {
       ctx.session = ctx.session || {};
       ctx.session.adminFlow = null;
-      return ctx.reply('Add product canceled.');
+      return ctx.reply('ការបន្ថែមផលិតផលថ្មីរបស់អ្នកត្រូវបានបរាជ័យ!!');
     }
   }
 
@@ -168,7 +167,7 @@ const handleCallback = async (ctx) => {
     if (action === 'cancel') {
       ctx.session = ctx.session || {};
       ctx.session.adminFlow = null;
-      return ctx.reply('Add category canceled.');
+      return ctx.reply('ការបន្ថែមប្រភេទផលិតផលថ្មីរបស់អ្នកត្រូវបានបរាជ័យ!!');
     }
   }
 
@@ -177,12 +176,12 @@ const handleCallback = async (ctx) => {
     const confirmed = action === 'yes';
 
     if (!ctx.session || !ctx.session.adminFlow || ctx.session.adminFlow.type !== 'product') {
-      return ctx.reply('No pending product addition was found.');
+      return ctx.reply('មិនមានការបន្ថែមផលិតផលកំពុងរងចាំ។');
     }
 
     if (!confirmed) {
       ctx.session.adminFlow = null;
-      return ctx.reply('Add product canceled.');
+      return ctx.reply('ការបន្ថែមផលិតផលថ្មីរបស់អ្នកត្រូវបានបរាជ័យ!!');
     }
 
     const { name, category, price, quantity, image } = ctx.session.adminFlow.data;
@@ -190,7 +189,7 @@ const handleCallback = async (ctx) => {
     const categoryDoc = await Category.findOne({ name: category });
     if (!categoryDoc) {
       ctx.session.adminFlow = null;
-      return ctx.reply('Category not found. Product was not added. Please create the category first.');
+      return ctx.reply('យើងរកមិនឃើញប្រភេទផលិតផលដែលអ្នកចង់បន្ថែមនោះទេ!! \nការបន្ថែមផលិតផលថ្មីរបស់អ្នកត្រូវបានបរាជ័យ!! \nសូមបង្កើតប្រភេទផលិតផលដែលអ្នកចង់បន្ថែមជាមិនសិន!!');
     }
 
     const product = new Product({
@@ -214,7 +213,7 @@ const handleCallback = async (ctx) => {
 
     await product.save();
     ctx.session.adminFlow = null;
-    return ctx.reply('Product added successfully.');
+    return ctx.reply('បានបន្ថែមផលិតផលថ្មីដោយជោគជ័យ!!');
   }
 
   if (target === 'submit_category') {
@@ -222,28 +221,28 @@ const handleCallback = async (ctx) => {
     const confirmed = action === 'yes';
 
     if (!ctx.session || !ctx.session.adminFlow || ctx.session.adminFlow.type !== 'category') {
-      return ctx.reply('No pending category addition was found.');
+      return ctx.reply('មិនមានការបន្ថែមប្រភេទកំពុងរងចាំ!!');
     }
 
     if (!confirmed) {
       ctx.session.adminFlow = null;
-      return ctx.reply('Add category canceled.');
+      return ctx.reply('ការបន្ថែមប្រភេទផលិតផលថ្មីរបស់អ្នកត្រូវបានបរាជ័យ!!');
     }
 
     const { name } = ctx.session.adminFlow.data;
     const existingCategory = await Category.findOne({ name });
     if (existingCategory) {
       ctx.session.adminFlow = null;
-      return ctx.reply('Category already exists.');
+      return ctx.reply('ប្រភេទផលិតផលដែលអ្នកចង់បន្ថែមមានរួចហើយ!! \nការបន្ថែមប្រភេទផលិតផលថ្មីរបស់អ្នកត្រូវបានបរាជ័យ!! \nសូមបញ្ចូលឈ្មោះប្រភេទផ្សេងទៀតដែលមិនមាននៅក្នុងប្រព័ន្ធ!!');
     }
 
     const category = new Category({ name });
     await category.save();
     ctx.session.adminFlow = null;
-    return ctx.reply('Category added successfully.');
+    return ctx.reply('បានបន្ថែមប្រភេទផលិតផលថ្មីដោយជោគជ័យ!!');
   }
 
-  await safeAnswerCbQuery(ctx, 'Invalid admin action.', { show_alert: true });
+  await safeAnswerCbQuery(ctx, 'សកម្មភាពអ្នកគ្រប់គ្រងមិនត្រឹមត្រូវ!!', { show_alert: true });
 };
 
 const handleMessage = async (ctx) => {
@@ -267,23 +266,23 @@ const handleMessage = async (ctx) => {
       } else if (text) {
         flow.data.image = text;
       } else {
-        return ctx.reply('Please send a photo or enter an image URL.');
+        return ctx.reply('សូមផ្ញើរូបថតផលិតផលរបស់អ្នក!!');
       }
     } else {
       if (!text) {
-        return ctx.reply('Please send the requested information.');
+        return ctx.reply('សូមផ្ញើព័ត៌មានដែលបានស្នើសុំ!!');
       }
 
       if (step.key === 'price') {
         const parsedPrice = parseFloat(text);
         if (Number.isNaN(parsedPrice)) {
-          return ctx.reply('Invalid price. Please send a valid number.');
+          return ctx.reply('តម្លៃមិនត្រឹមត្រូវ! សូមបញ្ចូលចំនួនលេខត្រឹមត្រូវ!!');
         }
         flow.data.price = parsedPrice;
       } else if (step.key === 'quantity') {
         const parsedQuantity = parseInt(text, 10);
         if (Number.isNaN(parsedQuantity)) {
-          return ctx.reply('Invalid quantity. Please send a valid integer.');
+          return ctx.reply('ចំនួនមិនត្រឹមត្រូវ! សូមបញ្ចូលចំនួនគត់ត្រឹមត្រូវ!!');
         }
         flow.data.quantity = parsedQuantity;
       } else {
@@ -301,7 +300,7 @@ const handleMessage = async (ctx) => {
 
   if (flow.type === 'category') {
     if (!text) {
-      return ctx.reply('Please send the category name.');
+      return ctx.reply('សូមផ្ញើឈ្មោះប្រភេទផលិតផល!!');
     }
 
     flow.data.name = text;

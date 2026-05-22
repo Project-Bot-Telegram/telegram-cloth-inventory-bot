@@ -14,13 +14,13 @@ module.exports = async (ctx) => {
 
   const categoryId = callbackQuery.data.split(':')[1];
   if (!mongoose.Types.ObjectId.isValid(categoryId)) {
-    await safeAnswerCbQuery(ctx, 'Invalid category selection.', { show_alert: true });
+    await safeAnswerCbQuery(ctx, 'ការជ្រើសប្រភេទផលិតផលមិនត្រឹមត្រូវ!!', { show_alert: true });
     return;
   }
 
   const category = await Category.findById(categoryId);
   if (!category) {
-    await safeAnswerCbQuery(ctx, 'Category not found.', { show_alert: true });
+    await safeAnswerCbQuery(ctx, 'មិនឃើញប្រភេទផលិតផល។!!', { show_alert: true });
     return;
   }
 
@@ -33,7 +33,7 @@ module.exports = async (ctx) => {
   await safeAnswerCbQuery(ctx);
 
   if (products.length === 0) {
-    return ctx.reply(`No products found in ${category.name}.`);
+    return ctx.reply(`មិនមានផលិតផលនៅក្នុងប្រភេទ ${category.name} ទេ។`);
   }
 
   for (const product of products) {
@@ -43,20 +43,20 @@ module.exports = async (ctx) => {
     const price = typeof product.price === 'number' ? product.price.toFixed(2) : '0.00';
     const quantity = typeof product.quantity === 'number' ? product.quantity : 0;
 
-    let status = 'Out of stock';
-    if (quantity === 0) status = 'Out of stock';
-    else if (quantity > 5) status = 'In stock';
-    else if (quantity > 0 && quantity < 5) status = 'Low stock';
+    let status = 'out of stock';
+    if (quantity === 0) status = 'out of stock';
+    else if (quantity > 5) status = 'in stock';
+    else if (quantity > 0 && quantity < 5) status = 'low stock';
 
     const displayId = product.product_id || String(product._id);
-    const message = `------------------------------\nID: ${displayId}\nName: ${product.name}\nPrice: $${price}\nQuantity: ${quantity}\nStatus: ${status}\n------------------------------`;
+    const message = `ID: ${displayId}\n\nផលិតផល : ${product.name}\nតម្លៃ : $${price}\nចំនួនដាក់លក់ : ${quantity}\nStock : ${status}`;
 
     const buttons = [];
     if (isAdmin) {
-      buttons.push([Markup.button.callback('Stock', `admin_product:stock:${product._id}`), Markup.button.callback('Edit', `edit_product:start:${product._id}`), Markup.button.callback('Delete', `admin_product:delete:${product._id}`)]);
+      buttons.push([Markup.button.callback('stock', `admin_product:stock:${product._id}`), Markup.button.callback('edit', `edit_product:start:${product._id}`), Markup.button.callback('delete', `admin_product:delete:${product._id}`)]);
     } else {
-      buttons.push([Markup.button.callback('Order Now', `order_now:${product._id}`)]);
-      buttons.push([Markup.button.callback('add to cart', `add_cart:${product._id}`)]);
+      buttons.push([Markup.button.callback('ទិញភ្លាមៗៗ', `order_now:${product._id}`)]);
+      buttons.push([Markup.button.callback('ដាក់ក្នុងកន្ត្រក', `add_cart:${product._id}`)]);
     }
     const keyboard = Markup.inlineKeyboard(buttons);
 

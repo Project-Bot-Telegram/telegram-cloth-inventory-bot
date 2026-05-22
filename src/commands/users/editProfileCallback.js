@@ -11,11 +11,10 @@ module.exports = async (ctx) => {
   const parts = callbackQuery.data.split(':');
   const type = parts[0];
   const action = parts[1];
-  const value = parts[2] || '';
 
   const user = await User.findOne({ telegram_id: ctx.from.id });
   if (!user) {
-    await safeAnswerCbQuery(ctx, 'Please register first by sending /start.', { show_alert: true });
+    await safeAnswerCbQuery(ctx, 'សូមចុះឈ្មោះជាមុនដោយផ្ញើ /start។', { show_alert: true });
     return;
   }
 
@@ -23,14 +22,13 @@ module.exports = async (ctx) => {
     await safeAnswerCbQuery(ctx);
 
     return ctx.reply(
-      `You can change your full name, language code, and address.\n\n` +
-      `Current values:\n` +
-      `• Full name: ${user.full_name || 'N/A'}\n` +
-      `• Language: ${user.language || 'N/A'}\n` +
-      `• Address: ${user.address || 'N/A'}\n\n` +
-      `Are you sure you want edit?`,
+      `អ្នកអាចកែប្រែឈ្មោះពេញ និងអាសយដ្ឋាន។\n\n` +
+      `តម្លៃបច្ចុប្បន្ន:\n` +
+      `• ឈ្មោះពេញ: ${user.full_name || 'N/A'}\n` +
+      `• អាសយដ្ឋាន: ${user.address || 'N/A'}\n\n` +
+      `តើអ្នកចង់បន្តកែប្រែមែនទេ?`,
       Markup.inlineKeyboard([
-        [Markup.button.callback('Cancel', 'edit_profile:cancel'), Markup.button.callback('Continue edit', 'edit_profile:continue')]
+        [Markup.button.callback('បោះបង់', 'edit_profile:cancel'), Markup.button.callback('បន្តកែ', 'edit_profile:continue')]
       ])
     );
   }
@@ -42,14 +40,13 @@ module.exports = async (ctx) => {
       data: {},
       originalData: {
         full_name: user.full_name || '',
-        language: user.language || '',
         address: user.address || ''
       }
     };
 
     await safeAnswerCbQuery(ctx);
-    return ctx.reply('Send your new full name to begin editing.', Markup.inlineKeyboard([
-      [Markup.button.callback('Skip for use old full name', 'edit_profile:skip_fullname')]
+    return ctx.reply('សូមផ្ញើឈ្មោះពេញថ្មីរបស់អ្នក ដើម្បីចាប់ផ្តើមកែប្រែ។', Markup.inlineKeyboard([
+      [Markup.button.callback('លេចចេញឲ្យប្រើឈ្មោះចាស់', 'edit_profile:skip_fullname')]
     ]));
   }
 
@@ -58,12 +55,12 @@ module.exports = async (ctx) => {
     if (ctx.session) {
       ctx.session.editProfile = null;
     }
-    return ctx.reply('Profile edit canceled.');
+    return ctx.reply('ការកែប្រែប្រវត្តិបុគ្គលបានបោះបង់។');
   }
 
   if (type === 'edit_profile' && action === 'skip_fullname') {
     if (!ctx.session || !ctx.session.editProfile) {
-      await safeAnswerCbQuery(ctx, 'No active edit session found.', { show_alert: true });
+      await safeAnswerCbQuery(ctx, 'មិនមានកម្មវិធីកែប្រែសកម្មទេ។', { show_alert: true });
       return;
     }
 
@@ -71,43 +68,27 @@ module.exports = async (ctx) => {
     ctx.session.editProfile.stepIndex = 1;
 
     await safeAnswerCbQuery(ctx);
-    return ctx.reply('Send your new language code.', Markup.inlineKeyboard([
-      [Markup.button.callback('Skip for use old language', 'edit_profile:skip_language')]
-    ]));
-  }
-
-  if (type === 'edit_profile' && action === 'skip_language') {
-    if (!ctx.session || !ctx.session.editProfile) {
-      await safeAnswerCbQuery(ctx, 'No active edit session found.', { show_alert: true });
-      return;
-    }
-
-    ctx.session.editProfile.data.language = ctx.session.editProfile.originalData.language;
-    ctx.session.editProfile.stepIndex = 2;
-
-    await safeAnswerCbQuery(ctx);
-    return ctx.reply('Send your new address.', Markup.inlineKeyboard([
-      [Markup.button.callback('Skip for use old address', 'edit_profile:skip_address')]
+    return ctx.reply('សូមផ្ញើអាសយដ្ឋានថ្មីរបស់អ្នក។', Markup.inlineKeyboard([
+      [Markup.button.callback('លេចចេញឲ្យប្រើអាសយដ្ឋានចាស់', 'edit_profile:skip_address')]
     ]));
   }
 
   if (type === 'edit_profile' && action === 'skip_address') {
     if (!ctx.session || !ctx.session.editProfile) {
-      await safeAnswerCbQuery(ctx, 'No active edit session found.', { show_alert: true });
+      await safeAnswerCbQuery(ctx, 'មិនមានកម្មវិធីកែប្រែសកម្មទេ។', { show_alert: true });
       return;
     }
 
     ctx.session.editProfile.data.address = ctx.session.editProfile.originalData.address;
-    ctx.session.editProfile.stepIndex = 3;
+    ctx.session.editProfile.stepIndex = 2;
 
     await safeAnswerCbQuery(ctx);
-    const message = `Please confirm your updated profile information:\n\n` +
-      `Full name: ${ctx.session.editProfile.data.full_name}\n` +
-      `Language: ${ctx.session.editProfile.data.language}\n` +
-      `Address: ${ctx.session.editProfile.data.address}`;
+    const message = `សូមផ្ទៀងផ្ទាត់ព័ត៌មានប្រវត្តិថ្មីរបស់អ្នក:\n\n` +
+      `ឈ្មោះពេញ: ${ctx.session.editProfile.data.full_name}\n` +
+      `អាសយដ្ឋាន: ${ctx.session.editProfile.data.address}`;
 
     return ctx.reply(message, Markup.inlineKeyboard([
-      [Markup.button.callback('Cancel', 'confirm_edit:no'), Markup.button.callback('Confirm', 'confirm_edit:yes')]
+      [Markup.button.callback('បោះបង់', 'confirm_edit:no'), Markup.button.callback('ផ្ទៀងផ្ទាត់', 'confirm_edit:yes')]
     ]));
   }
 
@@ -116,12 +97,12 @@ module.exports = async (ctx) => {
     await safeAnswerCbQuery(ctx);
 
     if (!ctx.session || !ctx.session.editProfile || !ctx.session.editProfile.data) {
-      return ctx.reply('No pending profile changes were found.');
+      return ctx.reply('មិនមានការផ្លាស់ប្តូរប្រវត្តិដែលកំពុងរងចាំ។');
     }
 
     if (!confirmed) {
       ctx.session.editProfile = null;
-      return ctx.reply('Profile update canceled.');
+      return ctx.reply('ការអាប់ដេតប្រវត្តិបុគ្គលបានបោះបង់។');
     }
 
     const updatedData = ctx.session.editProfile.data;
@@ -129,12 +110,11 @@ module.exports = async (ctx) => {
     ctx.session.editProfile = null;
 
     return ctx.reply(
-      `Profile updated successfully.\n\n` +
-      `Full name: ${updatedData.full_name}\n` +
-      `Language: ${updatedData.language}\n` +
-      `Address: ${updatedData.address}`
+      `ប្រវត្តិបុគ្គលបានធ្វើឲ្យទាន់សម័យជោគជ័យ។\n\n` +
+      `ឈ្មោះពេញ: ${updatedData.full_name}\n` +
+      `អាសយដ្ឋាន: ${updatedData.address}`
     );
   }
 
-  await safeAnswerCbQuery(ctx, 'Invalid profile action.', { show_alert: true });
+  await safeAnswerCbQuery(ctx, 'សកម្មភាពប្រវត្តិបុគ្គលមិនត្រឹមត្រូវ។', { show_alert: true });
 };

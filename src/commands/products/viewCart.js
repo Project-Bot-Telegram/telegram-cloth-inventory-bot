@@ -4,7 +4,7 @@ const { safeAnswerCbQuery } = require('../../utils/telegramHelper');
 const formatCartItem = (item) => {
   const productPrice = typeof item.productPrice === 'number' ? item.productPrice : 0;
   const totalPrice = (productPrice * item.quantity).toFixed(2);
-  return `product: ${item.productName}\nquantity: ${item.quantity}\nprice: $${totalPrice}`;
+  return `ផលិតផល: ${item.productName}\nបរិមាណ: ${item.quantity}\nតម្លៃសរុប: $${totalPrice}`;
 };
 
 module.exports = async (ctx) => {
@@ -21,10 +21,10 @@ module.exports = async (ctx) => {
 
   if (cart.length === 0) {
     if (isCallback) {
-      await safeAnswerCbQuery(ctx, 'Your cart is empty.', { show_alert: true });
+      await safeAnswerCbQuery(ctx, 'កាសរបស់អ្នកទទេ។', { show_alert: true });
       return;
     }
-    return ctx.reply('Your cart is empty.');
+    return ctx.reply('កាសរបស់អ្នកទទេ។');
   }
 
   if (isCallback) {
@@ -41,8 +41,8 @@ module.exports = async (ctx) => {
   }
 
   const keyboard = Markup.inlineKeyboard([
-    [Markup.button.callback('Order all product', 'order_all_cart')],
-    [Markup.button.callback('Clear cart', 'clear_cart')]
+    [Markup.button.callback('បញ្ជាទិញទាំងអស់', 'order_all_cart')],
+    [Markup.button.callback('សម្អាតកាស', 'clear_cart')]
   ]);
 
   return ctx.reply(message, keyboard);

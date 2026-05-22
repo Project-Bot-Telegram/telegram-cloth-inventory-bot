@@ -75,29 +75,29 @@ const notifyAdminsAboutConfirmedOrder = async (ctx, order, buyer) => {
     };
     const summary = order.cart_items && order.cart_items.length > 0
       ? order.cart_items.map((item) => `- ${item.product_name} x${item.quantity} = $${item.total_price.toFixed(2)}`).join('\n')
-      : `Product: ${order.product_name}\nCategory: ${order.product_category}\nQuantity: ${order.quantity}`;
+      : `ផលិតផល: ${order.product_name}\nប្រភេទ: ${order.product_category}\nបរិមាណ: ${order.quantity}`;
 
     const message = '' +
       '------------------------------\n' +
-      'New Confirmed Order\n' +
+      'ការបញ្ជាទិញថ្មីបានបញ្ជាក់\n' +
       '------------------------------\n' +
-      `Buyer: ${buyerName}\n` +
+      `អ្នកទិញ: ${buyerName}\n` +
       `Telegram ID: ${buyer.telegram_id || 'N/A'}\n` +
-      `Username: ${buyer.username || 'N/A'}\n` +
-      `Address: ${order.address || 'N/A'}\n` +
+      `ឈ្មោះអ្នកប្រើប្រាស់: ${buyer.username || 'N/A'}\n` +
+      `អាសយដ្ឋាន: ${order.address || 'N/A'}\n` +
       '------------------------------\n' +
-      `Order ID: ${getShortOrderId(order._id)}\n` +
+      `លេខកូដបញ្ជាទិញ: ${getShortOrderId(order._id)}\n` +
       '------------------------------\n' +
-      `Order Summary:\n${summary}\n` +
-      `Status: confirmed\n` +
+      `សង្ខេបការបញ្ជាទិញ:\n${summary}\n` +
+      `ស្ថានភាព: បានបញ្ជាក់\n` +
       '------------------------------\n' +
-      `Total: $${order.total_price.toFixed(2)}\n` +
+      `សរុប: $${order.total_price.toFixed(2)}\n` +
       '------------------------------';
 
     const keyboard = Markup.inlineKeyboard([
       [
-        Markup.button.callback('❌expired', `admin_order_change:${order._id}:expired`),
-        Markup.button.callback('✔delivered', `admin_order_change:${order._id}:delivered`)
+        Markup.button.callback('❌ផុតកំណត់', `admin_order_change:${order._id}:expired`),
+        Markup.button.callback('✔បានដឹកជញ្ជូន', `admin_order_change:${order._id}:delivered`)
       ]
     ]);
 
@@ -118,25 +118,25 @@ const notifyAdminsAboutConfirmedOrder = async (ctx, order, buyer) => {
 
             const channelMessage = '' +
               '------------------------------\n' +
-              'New Confirmed Order\n' +
+              'ការបញ្ជាទិញថ្មីបានបញ្ជាក់\n' +
               '------------------------------\n' +
-              `Full name: ${maskFullName(buyerName)}\n` +
+              `ឈ្មោះពេញ: ${maskFullName(buyerName)}\n` +
               `Telegram ID: ${maskTelegramId(buyer.telegram_id || '')}\n` +
-              `Username: ${maskUsername(buyer.username || '')}\n` +
-              `Address: ${order.address ? '*****' : 'N/A'}\n` +
+              `ឈ្មោះអ្នកប្រើប្រាស់: ${maskUsername(buyer.username || '')}\n` +
+              `អាសយដ្ឋាន: ${order.address ? '*****' : 'N/A'}\n` +
               '------------------------------\n' +
-              `Order ID: ${getShortOrderId(order._id)}\n` +
+              `លេខកូដបញ្ជាទិញ: ${getShortOrderId(order._id)}\n` +
               '------------------------------\n' +
-              `Order Summary:\n${summary}\n` +
-              `Status: confirmed\n` +
+              `សង្ខេបការបញ្ជាទិញ:\n${summary}\n` +
+              `ស្ថានភាព: បានបញ្ជាក់\n` +
               '------------------------------\n' +
-              `Total: $${order.total_price.toFixed(2)}\n` +
+              `សរុប: $${order.total_price.toFixed(2)}\n` +
               '------------------------------';
 
             const channelKeyboard = Markup.inlineKeyboard([
               [
-                Markup.button.callback('admin', `admin_order_open:${order._id}`),
-                Markup.button.url('start bot', botLink)
+                Markup.button.callback('របាយការណ៍អ្នកគ្រប់គ្រង', `admin_order_open:${order._id}`),
+                Markup.button.url('ចាប់ផ្តើមបូត', botLink)
               ]
             ]);
 
@@ -165,31 +165,30 @@ module.exports = async (ctx) => {
 
   const orderId = data.split(':')[1];
   if (!mongoose.Types.ObjectId.isValid(orderId)) {
-    await safeAnswerCbQuery(ctx, 'Invalid order confirmation.');
-    return;
+    await safeAnswerCbQuery(ctx, 'ការបញ្ជាក់ការបញ្ជាទិញមិនត្រឹមត្រូវ។');
   }
 
   const user = await User.findOne({ telegram_id: ctx.from.id });
   if (!user) {
-    await safeAnswerCbQuery(ctx, 'Please register first by sending /start.', { show_alert: true });
+    await safeAnswerCbQuery(ctx, 'សូមចុះឈ្មោះជាមុនដោយផ្ញើ /start។', { show_alert: true });
     return;
   }
 
   const order = await Order.findById(orderId);
   if (!order) {
-    await safeAnswerCbQuery(ctx, 'Order not found.', { show_alert: true });
+    await safeAnswerCbQuery(ctx, 'មិនឃើញការបញ្ជាទិញ។', { show_alert: true });
     return;
   }
 
   if (!order.user_id.equals(user._id)) {
-    await safeAnswerCbQuery(ctx, 'This order belongs to another user.', { show_alert: true });
+    await safeAnswerCbQuery(ctx, 'ការបញ្ជាទិញនេះជาของអ្នកប្រើប្រាស់ផ្សេង។', { show_alert: true });
     return;
   }
 
   if (order.status !== 'pending') {
     const message = order.status === 'confirmed'
-      ? 'This order is already confirmed.'
-      : 'This order is no longer pending.';
+      ? 'ការបញ្ជាទិញនេះបានបញ្ជាក់រួចហើយ។'
+      : 'ការបញ្ជាទិញនេះមិននៅក្នុងស្ថានភាពរងចាំទៀតទេ។';
     await safeAnswerCbQuery(ctx, message, { show_alert: true });
     return;
   }
@@ -216,7 +215,7 @@ module.exports = async (ctx) => {
       }
     }
 
-    await safeAnswerCbQuery(ctx, 'Order has expired. Please place a new order.', { show_alert: true });
+    await safeAnswerCbQuery(ctx, 'ការបញ្ជាទិញបានផុតកំណត់។ សូមបញ្ជាទិញមួយថ្មី។', { show_alert: true });
     return;
   }
 
@@ -225,7 +224,7 @@ module.exports = async (ctx) => {
   clearPendingOrderExpiration(orderId);
 
   await notifyAdminsAboutConfirmedOrder(ctx, order, user);
-  await safeAnswerCbQuery(ctx, 'Payment confirmed!');
+  await safeAnswerCbQuery(ctx, 'ការបង់ប្រាក់ត្រូវបានបញ្ជាក់រួចរាល់!');
 
   const fullName = user.full_name || 'N/A';
   const username = user.username || 'N/A';
@@ -238,43 +237,43 @@ module.exports = async (ctx) => {
     const channelLink = 'https://t.me/+mVENegLmW-xmYmNl';
     await ctx.reply(
       `------------------------------\n` +
-      `✅ Order confirmed!\n` +
+      `✅ ការបញ្ជាទិញបានបញ្ជាក់!\n` +
       `------------------------------\n` +
       `Telegram ID: ${telegramId}\n` +
-      `Full name: ${fullName}\n` +
-      `Username: ${username}\n` +
-      `Address: ${addressText}\n` +
+      `ឈ្មោះពេញ: ${fullName}\n` +
+      `ឈ្មោះអ្នកប្រើប្រាស់: ${username}\n` +
+      `អាសយដ្ឋាន: ${addressText}\n` +
       `------------------------------\n` +
-      `Order ID: ${getShortOrderId(order._id)}\n` +
-      `Order Summary:\n${cartSummary}\n` +
+      `លេខកូដបញ្ជាទិញ: ${getShortOrderId(order._id)}\n` +
+      `សង្ខេបបញ្ជាទិញ:\n${cartSummary}\n` +
       `------------------------------\n` +
-      `Total: $${order.total_price.toFixed(2)}\n` +
-      `Status: confirmed\n` +
+      `សរុប: $${order.total_price.toFixed(2)}\n` +
+      `ស្ថានភាព: បានបញ្ជាក់\n` +
       `------------------------------`,
       Markup.inlineKeyboard([
-        [Markup.button.url('View on channel', channelLink)]
+        [Markup.button.url('មើលលើឆានែល', channelLink)]
       ])
     );
   } else {
     await ctx.reply(
       `------------------------------\n` +
-      `✅ Order confirmed!\n` +
+      `✅ ការបញ្ជាទិញបានបញ្ជាក់!\n` +
       `------------------------------\n` +
       `Telegram ID: ${telegramId}\n` +
-      `Full name: ${fullName}\n` +
-      `Username: ${username}\n` +
-      `Address: ${addressText}\n` +
+      `ឈ្មោះពេញ: ${fullName}\n` +
+      `ឈ្មោះអ្នកប្រើប្រាស់: ${username}\n` +
+      `អាសយដ្ឋាន: ${addressText}\n` +
       `------------------------------\n` +
-      `Order ID: ${getShortOrderId(order._id)}\n` +
-      `Product: ${order.product_name}\n` +
-      `Category: ${order.product_category}\n` +
-      `Quantity: ${order.quantity}\n` +
+      `លេខកូដបញ្ជាទិញ: ${getShortOrderId(order._id)}\n` +
+      `ផលិតផល: ${order.product_name}\n` +
+      `ប្រភេទ: ${order.product_category}\n` +
+      `បរិមាណ: ${order.quantity}\n` +
       `------------------------------\n` +
-      `Total: $${order.total_price.toFixed(2)}\n` +
-      `Status: confirmed\n` +
+      `សរុប: $${order.total_price.toFixed(2)}\n` +
+      `ស្ថានភាព: បានបញ្ជាក់\n` +
       `------------------------------`,
       Markup.inlineKeyboard([
-        [Markup.button.url('View on channel', 'https://t.me/+mVENegLmW-xmYmNl')]
+        [Markup.button.url('មើលលើឆានែល', 'https://t.me/+mVENegLmW-xmYmNl')]
       ])
     );
   }

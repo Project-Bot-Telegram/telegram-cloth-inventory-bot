@@ -20,7 +20,7 @@ module.exports = async (ctx) => {
   const commandBody = fullText.slice(fullText.indexOf(' ') + 1).trim();
 
   if (!commandBody || commandBody.indexOf(' ') === -1) {
-    return ctx.reply('Usage: /order <product_id|name> <quantity>');
+    return ctx.reply('ប្រើ៖ /order <product_id|name> <បរិមាណ>');
   }
 
   const lastSpace = commandBody.lastIndexOf(' ');
@@ -29,21 +29,21 @@ module.exports = async (ctx) => {
   const quantity = parseInt(quantityText, 10);
 
   if (!identifier || Number.isNaN(quantity) || quantity < 1) {
-    return ctx.reply('Usage: /order <product_id|name> <quantity>');
+    return ctx.reply('ប្រើ៖ /order <product_id|name> <បរិមាណ>');
   }
 
   const user = await User.findOne({ telegram_id: ctx.from.id });
   if (!user) {
-    return ctx.reply('Please register first by sending /start.');
+    return ctx.reply('សូមចុះឈ្មោះជាមុនដោយផ្ញើ /start។');
   }
 
   const product = await findProduct(identifier);
   if (!product) {
-    return ctx.reply('Product not found.');
+    return ctx.reply('មិនឃើញផលិតផល។');
   }
 
   if (product.quantity < quantity) {
-    return ctx.reply(`Not enough stock. Available quantity: ${product.quantity}`);
+    return ctx.reply(`ស្តុកមិនគ្រប់គ្រាន់។ បរិមាណដែលអ្នកចង់បាន៖ ${quantity}, បរិមាណនៅសល់៖ ${product.quantity}`);
   }
 
   ctx.session = ctx.session || {};
@@ -58,12 +58,12 @@ module.exports = async (ctx) => {
   };
 
   const buttons = Markup.inlineKeyboard([
-    [Markup.button.callback('Use profile address', 'order_address:profile')],
-    [Markup.button.callback('Use new address', 'order_address:new')]
+    [Markup.button.callback('ប្រើអាសយដ្ឋានប្រវត្តិ', 'order_address:profile')],
+    [Markup.button.callback('ប្រើអាសយដ្ឋានថ្មី', 'order_address:new')]
   ]);
 
   return ctx.reply(
-    `Choose delivery address for ${product.name} x${quantity}:`,
+    `សូមជ្រើសអាសយដ្ឋានដឹកជញ្ជូនសម្រាប់ ${product.name} x${quantity}:`,
     buttons
   );
 };

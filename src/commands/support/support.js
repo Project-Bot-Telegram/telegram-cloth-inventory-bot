@@ -1,21 +1,21 @@
 // Command to display support information about how to order products
 const supportCommand = async (ctx) => {
   return ctx.reply(
-    '📦 How to Order Products\n\n' +
-    'Step 1: View Products\n' +
-    '• Tap "Show product" button to browse categories and products\n\n' +
-    'Step 2: Check Product Details\n' +
-    '• Select a product from the category listing\n\n' +
-    'Step 3: Place Your Order\n' +
-    '• Tap "Order Now" on the product detail screen\n' +
-    '• Then send your delivery address when prompted\n\n' +
-    'Step 4: Complete Payment\n' +
-    '• Scan the QR code sent by the bot\n' +
-    '• Complete payment within 2 minutes\n' +
-    '• Click the Confirm button after payment\n\n' +
-    'Step 5: Track Your Order\n' +
-    '• Tap "Orders History" button\n\n' +
-    '❓ Need more help? Contact your admin or use /status to check bot status.'
+    '📦 វិធីបញ្ជាទិញផលិតផល\n\n' +
+    'ជំហានទី 1: មើលផលិតផល\n' +
+    '• ចុចប៊ូតុង "បង្ហាញផលិតផល" ដើម្បីរកប្រភេទ និងផលិតផល\n\n' +
+    'ជំហានទី 2: ពិនិត្យព័ត៌មានផលិតផល\n' +
+    '• ជ្រើសផលិតផលពីបញ្ជីប្រភេទ\n\n' +
+    'ជំហានទី 3: បញ្ជាទិញ\n' +
+    '• ចុច "បញ្ជាទិញឥឡូវ" នៅលើអេក្រង់ព័ត៌មានផលិតផល\n' +
+    '• បន្ទាប់មកផ្ញើអាសយដ្ឋានដឹកជញ្ជូនរបស់អ្នក\n\n' +
+    'ជំហានទី 4: ប្រាក់បង់\n' +
+    '• Scanning QR code ដែលបូតផ្ញើ\n' +
+    '• បញ្ចប់ការបង់ប្រាក់ក្នុងរយៈពេល 2 នាទី\n' +
+    '• ចុចប៊ូតុង "ផ្ទៀងផ្ទាត់" បន្ទាប់ពីបានបង់ប្រាក់\n\n' +
+    'ជំហានទី 5: តាមដានការបញ្ជាទិញ\n' +
+    '• ចុចប៊ូតុង "ប្រវត្តិបញ្ជាទិញ"\n\n' +
+    '❓ ត្រូវការជំនួយបន្ថែម? សូមទាក់ទងអ្នកគ្រប់គ្រង ឬប្រើ /status ដើម្បីពិនិត្យស្ថានភាពបូត។'
   );
 };
 

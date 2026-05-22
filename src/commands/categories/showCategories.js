@@ -7,16 +7,16 @@ module.exports = async (ctx) => {
   const categories = await Category.find();
 
   if (categories.length === 0) {
-    return ctx.reply('No categories available.');
+    return ctx.reply('មិនមានប្រភេទដែលមានស្រាប់ទេ។');
   }
 
   const buttons = [];
 
-  // Show add-product button only to admins
+  // បង្ហាញប៊ូតុងបន្ថែមផលិតផលសម្រាប់អ្នកគ្រប់គ្រងតែប៉ុណ្ណោះ
   try {
     const user = await User.findOne({ telegram_id: ctx.from.id });
     if (user && user.role === 'admin') {
-      buttons.push([Markup.button.callback('+ add product +', 'admin:add_product:continue')]);
+      buttons.push([Markup.button.callback('➕ បន្ថែមផលិតផល ➕', 'admin:add_product:continue')]);
     }
   } catch (err) {
     // if any error occurs, don't show the admin button
@@ -29,10 +29,6 @@ module.exports = async (ctx) => {
   }
 
   const keyboard = Markup.inlineKeyboard(buttons);
-  const message = '' +
-    '------------------------------\n' +
-    'Please choose a category\n' +
-    '------------------------------';
-
+  const message = 'សូមជ្រើសប្រភេទផលិតផលដែលអ្នកចង់មើល:';
   return ctx.reply(message, keyboard);
 };
