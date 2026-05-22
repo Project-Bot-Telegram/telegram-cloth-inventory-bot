@@ -138,6 +138,16 @@ For cart-based orders:
 
 ---
 
+## Documentation
+
+Detailed guides are available in the `docs/` folder:
+
+- `docs/user-guide.md` — Regular user workflow
+- `docs/admin-guide.md` — Admin workflows and management tools
+- `docs/bot-workflow.md` — How the bot processes messages and callbacks
+
+---
+
 ## Notes
 
 - The bot is built with `telegraf`, `mongoose`, and `dotenv`.
