@@ -16,98 +16,137 @@ npm install
 cp .env.example .env
 ```
 
-3. Fill in your Telegram bot token and MongoDB connection string in `.env`.
+3. Open `.env` and set:
 
-## Run
+```env
+BOT_TOKEN=your-telegram-bot-token
+MONGO_URI=your-mongodb-connection-string
+ORDER_CHANNEL_ID=@your_channel
+```
+
+4. Start the bot:
 
 ```bash
 npm start
 ```
 
-## Bot Commands
+---
 
-- `/start` - Register new users or welcome returning users by full name. After registration, the bot shows a bottom menu with buttons like `Show product`, `Orders History`, `View Profile`, `Help`, and `Support`.
-- `/status` - Check MongoDB connection status.
-- `/admin` - Show the admin panel (admin role only).
-- `Add Product` / `Add Category` - Admin-only buttons shown in the main menu for guided creation flows.
+## Step-by-step bot flow
 
-## Category & Product Management
+### 1. Start and register
 
-Most category and product management actions are handled through buttons in the admin panel rather than slash commands.
+- Send `/start` to the bot.
+- If you are a new user, the bot will ask for your full name and save your profile.
+- If you are already registered, the bot will welcome you and show the main menu.
 
-- Admins can use `Add Product` and `Add Category` buttons to begin guided creation flows.
-- Categories are listed with product counts, and tapping a category shows its products.
-- Product detail screens include admin actions for `Stock`, `Edit`, and `Delete`.
-- The `Stock` action exposes additional admin controls for `Add stock`, `Out stock`, and `Clear stock`.
+### 2. Use the main menu
 
-### Search and ordering
+After registration, the bot shows a menu with buttons.
 
-- `/search <field> <query>` (registered users) — Search products by `id`, `name`, `category`, or `price`.
-- `/cart` (registered users) — View cart contents and proceed to order.
+For regular users:
 
-### Admin actions
+- `📦 បង្ហាញផលិតផល​ 📦` — View product categories and product lists.
+- `ប្រវត្តិនៃការបញ្ជាទិញ` — See your order history.
+- `support` — Open support instructions.
+- `help` — View available commands.
+- `🕵️‍♀️ profile 🕵️‍♀️` — View or update your profile.
 
-- `/total-user` — Display the total number of registered users.
-- `/view-<user_id>` — View a specific user's profile information. Example: `/view-1655512983`
-- `/promote-<user_id>` — Promote a user to admin. Example: `/promote-1655512983`
+For admins, the menu also includes:
 
-### Admin buttons and detail actions
+- `📦 គ្រប់គ្រងផលិតផល 📦` — Open admin product management.
+- `គ្រប់គ្រងប្រភេទផលិតផល` — Manage product categories.
+- `គ្រប់គ្រងការបញ្ជាទិញ` — Manage order status.
 
-- `Add Product` — Starts a guided product creation flow, asking for name, category, price, quantity, and image before confirmation.
-- `Add Category` — Starts a guided category creation flow with confirmation.
-- On product detail screens, admins also see `Stock`, `Edit`, and `Delete` buttons.
-- `Stock` opens current stock details, recent changes, and actions for `Add stock`, `Out stock`, and `Clear stock`.
-- `History stock` shows paginated stock history entries, 10 items at a time.
+### 3. Browse categories and products
 
-## Stock Management
+- Press `📦 បង្ហាញផលិតផល​ 📦` to list categories.
+- Tap a category to see products inside.
+- On each product, regular users can:
+  - `ដាក់ទៅកាស` — Add the product to the cart.
+  - `បញ្ជាទិញឥឡូវ` — Order the product immediately.
 
-- Stock changes are managed through the admin product detail workflow and `Stock` actions in the UI.
+Admin users also see product controls:
 
-Stock changes are recorded in each product's `stock_history`, including additions, removals, clears, purchases, and restore operations.
+- `ស្តុក` — View and edit stock.
+- `កែប្រែ` — Edit product details.
+- `លុប` — Delete the product.
 
-## Orders
+### 4. Place an order
 
-- Orders are placed through the button-driven workflow on product details and cart screens.
-- Order confirmation uses a local QR payment image at `assets/QRpayment/QRpayment.png`.
-- Users must confirm payment within 2 minutes or the order expires and reserved stock is restored.
-- `Orders History` button shows order history, 4 orders per page with a `See 4 more order history` button.
+For a single product:
 
-## User Roles
+- Choose `បញ្ជាទិញឥឡូវ` on the product detail screen.
+- Select an address:
+  - `ប្រើអាសយដ្ឋានក្នុង​​ profile` — Use the saved profile address.
+  - `ប្រើអាសយដ្ឋានថ្មី` — Enter a new shipping address.
+- Confirm payment on the order screen.
 
-The bot supports two roles:
+For cart-based orders:
 
-### Staff (default)
-- Can register with `/start`.
-- Can view profile via the `View Profile` button.
-- Can browse categories and products.
-- Can place orders and view order history via buttons.
+- Add products to the cart with `ដាក់ទៅកាស`.
+- Open the cart with `/cart` or `view cart` button.
+- Tap `បញ្ជាទិញទាំងអស់` to order everything in the cart.
+- Confirm the address and payment.
 
-### Admin
-- Has all staff privileges.
-- Can use admin-only buttons and controls.
-- Can manage categories, products, and stock.
-- Can view admin product actions and stock history.
+### 5. Check order status
 
-## Admin Commands
+- Use `ប្រវត្តិនៃការបញ្ជាទិញ` to view order history.
+- Order history can be filtered by status and paged with `See more` buttons.
 
-- `/total-user` — Display the total number of registered users.
-- `/view-<user_id>` — View a specific user's profile information. Example: `/view-1655512983`
-- `/promote-<user_id>` — Promote a user to admin. Example: `/promote-1655512983`
+### 6. Support and help
+
+- Send `help` to display bot help text and supported commands.
+- Send `support` for support information and admin contact guidance.
+
+---
+
+## Commands
+
+- `/start` — Register or log in and show the menu.
+- `/status` — Check whether MongoDB is connected.
+- `/search <field> <query>` — Search products by `id`, `name`, `category`, or `price`.
+- `/cart` — Open the current cart and proceed to checkout.
+- `/total-user` — Admin only: show total registered users.
+- `/view-<user_id>` — Admin only: view a user profile.
+- `/promote-<user_id>` — Admin only: promote a user to admin.
+
+---
+
+## Admin workflows
+
+### Manage categories
+
+- Use `គ្រប់គ្រងប្រភេទផលិតផល` to open category management.
+- Add, edit, and delete categories from the admin panel.
+- `+ បន្ថែមប្រភេទផលិតផលថ្មី +` begins a new category flow.
+
+### Manage products
+
+- Use `📦 គ្រប់គ្រងផលិតផល 📦` to start admin product workflows.
+- Add a product through the guided flow.
+- Edit product name, category, price, quantity, and image.
+- Manage stock with `ស្តុក` actions:
+  - `Add stock`
+  - `Out stock`
+  - `Clear stock`
+
+### Manage orders
+
+- Use `គ្រប់គ្រងការបញ្ជាទិញ` to manage pending and confirmed orders.
+- Admins can change order status and review order details.
+
+---
+
+## Notes
+
+- The bot is built with `telegraf`, `mongoose`, and `dotenv`.
+- Store your Telegram bot token and MongoDB URI in `.env`.
+- Do not commit `.env`.
+- `ORDER_CHANNEL_ID` is used for order-related channel notifications.
 
 ## Scripts
 
 - `npm start` — Start the bot.
-- `npm run clear-db` — Reset the database using `scripts/clearDatabase.js`.
-- `npm run promote-admin <telegram_id>` — Promote a Telegram user to admin using `scripts/promoteAdmin.js`.
-
-## Notes
-
-- The bot uses MongoDB via `MONGO_URI` and Telegraf via `BOT_TOKEN`.
-- Do not commit `.env` to source control.
-- Admin users can be created by promoting a registered user in MongoDB or using the provided script.
-
-## Product ID behavior
-
-- New products receive a sequential zero-padded `product_id` (for example `0001`, `0002`).
-- Existing legacy products may not have a `product_id` until they are recreated or updated.
-- If you want a migration script to assign missing `product_id` values to existing products, that can be added.
+- `npm run clear-db` — Reset the database.
+- `npm run promote-admin <telegram_id>` — Promote a Telegram user to admin.
