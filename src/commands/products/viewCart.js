@@ -21,10 +21,10 @@ module.exports = async (ctx) => {
 
   if (cart.length === 0) {
     if (isCallback) {
-      await safeAnswerCbQuery(ctx, 'កាសរបស់អ្នកទទេ។', { show_alert: true });
+      await safeAnswerCbQuery(ctx, 'កន្ត្រករបស់អ្នកទទេ!!', { show_alert: true });
       return;
     }
-    return ctx.reply('កាសរបស់អ្នកទទេ។');
+    return ctx.reply('កន្ត្រករបស់អ្នកទទេ!!');
   }
 
   if (isCallback) {
@@ -42,7 +42,7 @@ module.exports = async (ctx) => {
 
   const keyboard = Markup.inlineKeyboard([
     [Markup.button.callback('បញ្ជាទិញទាំងអស់', 'order_all_cart')],
-    [Markup.button.callback('សម្អាតកាស', 'clear_cart')]
+    [Markup.button.callback('បោះបង់ចោល', 'clear_cart')]
   ]);
 
   return ctx.reply(message, keyboard);

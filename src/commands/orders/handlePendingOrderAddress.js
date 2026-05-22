@@ -78,7 +78,7 @@ const sendPaymentRequest = async (ctx, order, address, summaryText) => {
   const expiresText = order.expires_at ? new Date(order.expires_at).toLocaleString() : '';
   const caption = '' +
     '------------------------------\n' +
-    'ការស្នើសុំទូទាត់\n' +
+    'Payment Request\n' +
     '------------------------------\n' +
     `អាសយដ្ឋានដឹកជញ្ជូន: ${address}\n` +
     `ផុតកំណត់នៅ: ${expiresText}\n` +
@@ -87,7 +87,7 @@ const sendPaymentRequest = async (ctx, order, address, summaryText) => {
     '------------------------------\n' +
     `សរុប: $${order.total_price.toFixed(2)}\n` +
     '------------------------------\n' +
-    'សូមបង់ប្រាក់ និងចុច បញ្ជាក់ការបង់ប្រាក់ ក្នុងរយៈពេល 2 នាទី។';
+    'សូមបង់ប្រាក់ និង ចុចបញ្ជាក់ការបង់ប្រាក់ ក្នុងរយៈពេល 2 នាទី។';
 
   return ctx.replyWithPhoto({ source: qrPath }, {
     caption,
