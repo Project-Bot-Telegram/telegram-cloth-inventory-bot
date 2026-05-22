@@ -1,10 +1,10 @@
 module.exports = async (ctx) => {
   ctx.reply(
-    'Admin panel:\n' +
-    'Use the Add Product and Add Category buttons from the main menu to start a guided creation flow.\n' +
-    '/total-user - Show total number of users\n' +
-    '/view-<user_id> - View user profile by telegram ID\n' +
-    '/promote-<user_id> - Promote user to admin\n' +
-    '/status - Check database connection status'
+    'ផ្ទាំងអ្នកគ្រប់គ្រង:\n' +
+    'ប្រើប៊ូតុង បន្ថែមផលិតផល និង បន្ថែមប្រភេទ នៅក្នុងម៉ឺនុយដើម្បីចាប់ផ្តើមវដ្ដកំណត់មួយ។\n' +
+    '/total-user - បង្ហាញចំនួនអ្នកប្រើប្រាស់\n' +
+    '/view-<user_id> - មើលប្រវត្តិអ្នកប្រើអោយតាម Telegram ID\n' +
+    '/promote-<user_id> - លើកតំណែងអ្នកប្រើឲ្យជាអ្នកគ្រប់គ្រង\n' +
+    '/status - ពិនិត្យស្ថានភាពការភ្ជាប់ដេតាបាស'
   );
 };

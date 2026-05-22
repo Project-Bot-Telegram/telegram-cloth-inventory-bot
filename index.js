@@ -97,17 +97,16 @@ bot.command('search', authMiddleware, searchProduct);
 bot.command('cart', authMiddleware, viewCartCallback);
 bot.command('total-user', roleMiddleware, totalUserCommand);
 
-bot.hears('Show product', authMiddleware, showCategories);
-bot.hears('Manage Product', roleMiddleware, showCategories);
-bot.hears('Manage Category', roleMiddleware, manageCategory.listCategories);
-bot.hears('Manage Order', roleMiddleware, manageOrder.showStatusMenu);
-bot.hears('Orders History', authMiddleware, orderHistoryCommand);
-bot.hears('Manage Order History', roleMiddleware, orderHistoryCommand);
-bot.hears('View Profile', authMiddleware, profileCommand);
-bot.hears('Add Product', roleMiddleware, adminFlow.startAddProductConfirm);
-bot.hears('Add Category', roleMiddleware, adminFlow.startAddCategoryConfirm);
-bot.hears('Help', helpCommand);
-bot.hears('Support', supportCommand);
+bot.hears('📦 បង្ហាញផលិតផល​ 📦', authMiddleware, showCategories);
+bot.hears('📦 គ្រប់គ្រងផលិតផល 📦', roleMiddleware, showCategories);
+bot.hears('គ្រប់គ្រងប្រភេទផលិតផល', roleMiddleware, manageCategory.listCategories);
+bot.hears('គ្រប់គ្រងការបញ្ជាទិញ', roleMiddleware, manageOrder.showStatusMenu);
+bot.hears('ប្រវត្តិនៃការបញ្ជាទិញ', authMiddleware, orderHistoryCommand);
+bot.hears('🕵️‍♀️ profile 🕵️‍♀️', authMiddleware, profileCommand);
+bot.hears('បន្ថែមផលិតផល', roleMiddleware, adminFlow.startAddProductConfirm);
+bot.hears('បន្ថែមប្រភេទ', roleMiddleware, adminFlow.startAddCategoryConfirm);
+bot.hears('help', helpCommand);
+bot.hears('support', supportCommand);
 bot.hears(/^\/view-(\d+)(?:@\S+)?$/i, roleMiddleware, viewUserCommand);
 bot.hears(/^\/promote-(\d+)(?:@\S+)?$/i, roleMiddleware, promoteUserCommand);
 

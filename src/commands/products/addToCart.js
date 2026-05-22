@@ -20,13 +20,13 @@ module.exports = async (ctx) => {
   const productId = callbackQuery.data.split(':')[1];
   const product = await findProductById(productId);
   if (!product) {
-    await safeAnswerCbQuery(ctx, 'Product not found.', { show_alert: true });
+    await safeAnswerCbQuery(ctx, 'មិនឃើញផលិតផល។', { show_alert: true });
     return;
   }
 
   const user = await User.findOne({ telegram_id: ctx.from.id });
   if (!user) {
-    await safeAnswerCbQuery(ctx, 'Please register first by sending /start.', { show_alert: true });
+    await safeAnswerCbQuery(ctx, 'សូមចុះឈ្មោះជាមុនដោយផ្ញើ /start។', { show_alert: true });
     return;
   }
 
@@ -46,9 +46,9 @@ module.exports = async (ctx) => {
   }
 
   const keyboard = Markup.inlineKeyboard([
-    [Markup.button.callback('View cart', 'view_cart')]
+    [Markup.button.callback('មើលកាស', 'view_cart')]
   ]);
 
-  await safeAnswerCbQuery(ctx, 'Added to cart.');
-  await ctx.reply(`✅ ${product.name} has been added to your cart.\nView product in cart:`, keyboard);
+  await safeAnswerCbQuery(ctx, 'បានដាក់ចូលកាសរួចរាល់។');
+  await ctx.reply(`✅ ${product.name} ត្រូវបានដាក់ក្នុងកាសរបស់អ្នករួចរាល់។\nមើលកាស:`, keyboard);
 };

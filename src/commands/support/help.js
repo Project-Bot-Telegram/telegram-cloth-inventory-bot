@@ -1,12 +1,12 @@
 // Command to display help information about how to use the bot
 const helpCommand = async (ctx) => {
   return ctx.reply(
-    'Use buttons for most actions and commands only when needed:\n\n' +
-    '• Show product - Browse categories and products\n' +
-    '• View Profile - Check your profile\n' +
-    '• Orders History - View your order history\n' +
-    '• Support - Contact support\n\n' +
-    '/search <field> <query> - Search products\n'
+    'ប្រើប៊ូតុងសម្រាប់សកម្មភាពភាគច្រើន និងប្រើពាក្យបញ្ជាដែលចាំបាច់តែប៉ុណ្ណោះ:\n\n' +
+    '• បង្ហាញផលិតផល - ស្វែងរកប្រភេទ និងផលិតផល\n' +
+    '• មើលប្រវត្តិ - ពិនិត្យព័ត៌មានប្រវត្តិរបស់អ្នក\n' +
+    '• ប្រវត្តិបញ្ជាទិញ - មើលប្រវត្តិបញ្ជាទិញរបស់អ្នក\n' +
+    '• គាំទ្រ - ទំនាក់ទំនងក្រុមគាំទ្រ\n\n' +
+    '/search <field> <query> - ស្វែងរកផលិតផល\n'
   );
 };
 

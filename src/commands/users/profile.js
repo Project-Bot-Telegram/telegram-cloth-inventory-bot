@@ -1,6 +1,12 @@
 const { Markup } = require('telegraf');
 const User = require('../../models/User');
 
+const roleLabel = (role) => {
+  if (role === 'admin') return 'គ្រប់គ្រង';
+  if (role === 'staff') return 'បុគ្គលិក';
+  return role;
+};
+
 module.exports = async (ctx) => {
   const telegramId = ctx.from.id;
 
@@ -9,27 +15,26 @@ module.exports = async (ctx) => {
   });
 
   if (!user) {
-    return ctx.reply('User not found');
+    return ctx.reply('មិនឃើញអ្នកប្រើប្រាស់។');
   }
 
   const message = '' +
     '------------------------------\n' +
-    'Profile Information\n' +
+    'ព័ត៌មានប្រវត្តិ\n' +
     '------------------------------\n' +
     `Telegram ID: ${user.telegram_id}\n` +
-    `Full Name: ${user.full_name}\n` +
+    `ឈ្មោះពេញ: ${user.full_name}\n` +
     `Username: ${user.username || 'N/A'}\n` +
-    `Language: ${user.language}\n` +
-    `Address: ${user.address || 'N/A'}\n` +
-    `Role: ${user.role}\n` +
-    `Created At: ${user.created_at.toLocaleString()}\n` +
+    `អាសយដ្ឋាន: ${user.address || 'N/A'}\n` +
+    `តួនាទី: ${roleLabel(user.role)}\n` +
+    `សរសេរពេល: ${user.created_at.toLocaleString()}\n` +
     '------------------------------';
 
   return ctx.reply(message, Markup.inlineKeyboard([
     [
-      Markup.button.callback('Help', 'help'),
-      Markup.button.callback('Support', 'support'),
-      Markup.button.callback('Edit', 'edit_profile:start')
+      Markup.button.callback('ជំនួយ', 'help'),
+      Markup.button.callback('គាំទ្រ', 'support'),
+      Markup.button.callback('កែប្រែ', 'edit_profile:start')
     ]
   ]));
 };

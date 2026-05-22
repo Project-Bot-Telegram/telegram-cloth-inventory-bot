@@ -2,9 +2,8 @@ const User = require('../../models/User');
 const { mainMenuKeyboard } = require('../../utils/keyboards');
 
 const registrationQuestions = [
-  { key: 'full_name', prompt: 'Please enter your full name:' },
-  { key: 'language', prompt: 'What language do you speak? (English, Khmer, etc.)' },
-  { key: 'address', prompt: 'Please enter your delivery address:' }
+  { key: 'full_name', prompt: 'សូមបញ្ចូលឈ្មោះពេញរបស់អ្នក៖' },
+  { key: 'address', prompt: 'សូមបញ្ចូលអាសយដ្ឋានដឹកជញ្ជូនរបស់អ្នក៖' }
 ];
 
 const startRegistration = async (ctx) => {
@@ -20,8 +19,8 @@ const startRegistration = async (ctx) => {
     }
   };
 
-  await ctx.reply('Welcome to bot!', mainMenuKeyboard(false));
-  await ctx.reply('------------------------------\nRegistration\n------------------------------');
+  await ctx.reply('សូមស្វាគមន៍មកកាន់បូត!', mainMenuKeyboard(false));
+  await ctx.reply('------------------------------\nការចុះឈ្មោះ\n------------------------------');
   await ctx.reply(registrationQuestions[0].prompt);
 };
 
@@ -45,16 +44,16 @@ const handleRegistrationResponse = async (ctx, text) => {
 
   const doneMsg = '' +
     '------------------------------\n' +
-    'Registration Complete\n' +
+    'ការចុះឈ្មោះបានសម្រេច\n' +
     '------------------------------\n' +
-    `Thanks ${user.full_name}! Your registration is complete.\n` +
+    `សូមអរគុណ ${user.full_name}! ការចុះឈ្មោះរបស់អ្នកបានបញ្ចប់។\n` +
     '------------------------------';
   await ctx.reply(doneMsg, mainMenuKeyboard(user.role === 'admin'));
 };
 
 module.exports = async (ctx) => {
   if (!ctx.from || !ctx.from.id) {
-    return ctx.reply('Unable to identify your account.');
+    return ctx.reply('មិនអាចកំណត់គណនីរបស់អ្នកបាន។');
   }
 
   const telegramUser = ctx.from;
@@ -66,14 +65,14 @@ module.exports = async (ctx) => {
     }
 
     const displayName = existingUser.full_name || existingUser.username || 'there';
-    return ctx.reply(`Welcome back, ${displayName}!`, mainMenuKeyboard(existingUser.role === 'admin'));
+    return ctx.reply(`សូមស្វាគមន៍វិញ, ${displayName}!`, mainMenuKeyboard(existingUser.role === 'admin'));
   }
 
   if (ctx.session && ctx.session.registration) {
     const text = ctx.message && ctx.message.text ? ctx.message.text.trim() : '';
 
     if (!text || text.startsWith('/')) {
-      return ctx.reply('Please answer the current registration question instead of sending a command.');
+      return ctx.reply('សូមឆ្លើយសំណួរក្នុងការចុះឈ្មោះ បើកមុន មិនត្រូវផ្ញើពាក្យបញ្ជា។');
     }
 
     return handleRegistrationResponse(ctx, text);

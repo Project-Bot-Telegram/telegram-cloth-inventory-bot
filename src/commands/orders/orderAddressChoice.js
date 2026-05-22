@@ -11,20 +11,20 @@ module.exports = async (ctx) => {
   const choice = callbackQuery.data.split(':')[1];
   const user = await User.findOne({ telegram_id: ctx.from.id });
   if (!user) {
-    await safeAnswerCbQuery(ctx, 'Please register first by sending /start.', { show_alert: true });
+    await safeAnswerCbQuery(ctx, 'សូមចុះឈ្មោះជាមុនដោយផ្ញើ /start។', { show_alert: true });
     return;
   }
 
   const pendingOrder = ctx.session && ctx.session.pendingOrder;
   if (!pendingOrder) {
-    await safeAnswerCbQuery(ctx, 'No pending order found. Please place an order first.', { show_alert: true });
+    await safeAnswerCbQuery(ctx, 'មិនមានការបញ្ជាទិញនៅខាងមុខទេ។ សូមបញ្ជាទិញជាមុន។', { show_alert: true });
     return;
   }
 
   if (choice === 'profile') {
     if (!user.address) {
       await safeAnswerCbQuery(ctx);
-      return ctx.reply('Your profile does not have a saved delivery address. Please send your delivery address now.');
+      return ctx.reply('ក្នុងប្រវត្តិរបស់អ្នកមិនមានអាសយដ្ឋានដឹកជញ្ជូនដែលបានរក្សាទុកទេ។ សូមផ្ញើអាសយដ្ឋានដឹកជញ្ជូនរបស់អ្នកឥឡូវ។');
     }
 
     await safeAnswerCbQuery(ctx);
@@ -33,8 +33,8 @@ module.exports = async (ctx) => {
 
   if (choice === 'new') {
     await safeAnswerCbQuery(ctx);
-    return ctx.reply('Please send your delivery address to continue.');
+    return ctx.reply('សូមផ្ញើអាសយដ្ឋានដឹកជញ្ជូនរបស់អ្នកដើម្បីបន្ត។');
   }
 
-  await safeAnswerCbQuery(ctx, 'Invalid address option.', { show_alert: true });
+  await safeAnswerCbQuery(ctx, 'ជម្រើសអាសយដ្ឋានមិនត្រឹមត្រូវ។', { show_alert: true });
 };
