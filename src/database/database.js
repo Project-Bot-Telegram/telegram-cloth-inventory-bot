@@ -1,6 +1,20 @@
 const mongoose = require('mongoose');
+const dns = require('dns');
+
+const configureDns = () => {
+  const dnsServers = (process.env.DNS_SERVERS || '1.1.1.1,8.8.8.8')
+    .split(',')
+    .map((server) => server.trim())
+    .filter(Boolean);
+
+  if (dnsServers.length > 0) {
+    dns.setServers(dnsServers);
+  }
+};
 
 const connectDB = async (opts = {}) => {
+  configureDns();
+
   const uri = process.env.MONGO_URI;
   const maxAttempts = opts.maxAttempts || 5;
   const baseDelay = opts.baseDelay || 1000; // ms
