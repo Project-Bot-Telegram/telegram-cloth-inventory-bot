@@ -58,7 +58,7 @@ module.exports = async (ctx) => {
   };
 
   const buttons = Markup.inlineKeyboard([
-    [Markup.button.callback('ប្រើអាសយដ្ឋានប្រវត្តិ', 'order_address:profile')],
+    [Markup.button.callback('ប្រើអាសយដ្ឋានក្នុង​​ profile', 'order_address:profile')],
     [Markup.button.callback('ប្រើអាសយដ្ឋានថ្មី', 'order_address:new')]
   ]);
 

@@ -43,6 +43,13 @@ const startBot = require('./src/commands/startBot/startBot');
 bot.start(registerCommand);
 
 bot.on('message', async (ctx, next) => {
+  // Handle explicit /start messages (including deep links) before session intercepts
+  const incomingText = ctx.message && ctx.message.text ? ctx.message.text.trim() : '';
+  if (incomingText.startsWith('/start')) {
+    await registerCommand(ctx);
+    return;
+  }
+
   if (ctx.session && ctx.session.pendingOrder) {
     await handlePendingOrderAddress(ctx);
     return;
@@ -162,7 +169,7 @@ bot.on('callback_query', async (ctx) => {
     return adminProductActions.handleCallback(ctx);
   }
 
-  if (data.startsWith('category_info:') || data.startsWith('category_history_edit:') || data.startsWith('category_edit:') || data.startsWith('category_delete:')) {
+  if (data.startsWith('category_info:') || data.startsWith('category_history_edit:') || data.startsWith('category_edit:') || data.startsWith('category_delete:') || data.startsWith('category_confirm_edit:')) {
     return manageCategory.handleCallback(ctx);
   }
 

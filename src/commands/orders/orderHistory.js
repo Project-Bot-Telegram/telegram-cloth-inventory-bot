@@ -5,10 +5,10 @@ const { safeAnswerCbQuery } = require('../../utils/telegramHelper');
 
 const PAGE_SIZE = 4;
 const STATUS_LABELS = {
-  expired: 'ផុតកំណត់',
-  confirmed: 'បានបញ្ជាក់',
-  delivered: 'បានដឹកជញ្ជូន'
-  ,pending: 'រងចាំ'
+  expired: 'expired',
+  confirmed: 'confirmed',
+  delivered: 'delivered',
+  pending: 'pending'
 };
 
 const buildOrderMessage = (order, index, user) => {
@@ -29,11 +29,11 @@ const buildOrderMessage = (order, index, user) => {
 
   if (order.cart_items && order.cart_items.length > 0) {
     const cartLines = order.cart_items
-      .map((item) => `ផលិតផល: ${item.product_name}\nប្រភេទ: ${item.product_category}\nបរិមាណ: ${item.quantity}\nតម្លៃ: $${item.product_price.toFixed(2)}\nសរុប: $${item.total_price.toFixed(2)}`)
+      .map((item) => `ផលិតផល: ${item.product_name}\nប្រភេទ: ${item.product_category}\nចំនួន: ${item.quantity}\nតម្លៃ: $${item.product_price.toFixed(2)}\nសរុប: $${item.total_price.toFixed(2)}`)
       .join('\n------------------------------\n');
     orderText += `${cartLines}\n`;
   } else {
-    orderText += `ផលិតផល: ${order.product_name}\nប្រភេទ: ${order.product_category}\nបរិមាណ: ${order.quantity}\nតម្លៃ: $${order.product_price.toFixed(2)}\nសរុប: $${order.total_price.toFixed(2)}\n`;
+    orderText += `ផលិតផល: ${order.product_name}\nប្រភេទ: ${order.product_category}\nចំនួន: ${order.quantity}\nតម្លៃ: $${order.product_price.toFixed(2)}\nសរុប: $${order.total_price.toFixed(2)}\n`;
   }
 
   orderText += '------------------------------\n';
@@ -77,14 +77,12 @@ const sendOrderHistoryPage = async (ctx, user, orders, startIndex, status = null
 
 const showOrderStatusMenu = async (ctx) => {
   return ctx.reply(
-    '------------------------------\n' +
-    'ប្រវត្តិការបញ្ជាទិញ\n' +
-    '------------------------------\n' +
+    'ប្រវត្តិការបញ្ជាទិញ\n\n' +
     'សូមជ្រើសស្ថានភាពដើម្បីមើល:',
     Markup.inlineKeyboard([
-      [Markup.button.callback('ផុតកំណត់', 'order_history_status:expired')],
-      [Markup.button.callback('បានបញ្ជាក់', 'order_history_status:confirmed')],
-      [Markup.button.callback('បានដឹកជញ្ជូន', 'order_history_status:delivered')]
+      [Markup.button.callback('expired', 'order_history_status:expired')],
+      [Markup.button.callback('confirmed', 'order_history_status:confirmed')],
+      [Markup.button.callback('delivered', 'order_history_status:delivered')]
     ])
   );
 };

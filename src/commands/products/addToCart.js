@@ -20,7 +20,7 @@ module.exports = async (ctx) => {
   const productId = callbackQuery.data.split(':')[1];
   const product = await findProductById(productId);
   if (!product) {
-    await safeAnswerCbQuery(ctx, 'មិនឃើញផលិតផល។', { show_alert: true });
+    await safeAnswerCbQuery(ctx, 'រកមិនឃើញផលិតផល!!', { show_alert: true });
     return;
   }
 
@@ -46,9 +46,9 @@ module.exports = async (ctx) => {
   }
 
   const keyboard = Markup.inlineKeyboard([
-    [Markup.button.callback('មើលកាស', 'view_cart')]
+    [Markup.button.callback('មើលផលិតផលក្នុងកន្ត្រក', 'view_cart')]
   ]);
 
-  await safeAnswerCbQuery(ctx, 'បានដាក់ចូលកាសរួចរាល់។');
-  await ctx.reply(`✅ ${product.name} ត្រូវបានដាក់ក្នុងកាសរបស់អ្នករួចរាល់។\nមើលកាស:`, keyboard);
+  await safeAnswerCbQuery(ctx, 'បានដាក់ចូលកន្ត្រករួចរាល់។');
+  await ctx.reply(`✅ ${product.name} \nត្រូវបានដាក់ក្នុងកន្ត្រករបស់អ្នករួចរាល់!!`, keyboard);
 };

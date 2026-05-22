@@ -78,18 +78,17 @@ const notifyAdminsAboutConfirmedOrder = async (ctx, order, buyer) => {
       : `ផលិតផល: ${order.product_name}\nប្រភេទ: ${order.product_category}\nបរិមាណ: ${order.quantity}`;
 
     const message = '' +
-      '------------------------------\n' +
-      'ការបញ្ជាទិញថ្មីបានបញ្ជាក់\n' +
+      '✅ New Order Confirmed\n\n' +
       '------------------------------\n' +
       `អ្នកទិញ: ${buyerName}\n` +
       `Telegram ID: ${buyer.telegram_id || 'N/A'}\n` +
-      `ឈ្មោះអ្នកប្រើប្រាស់: ${buyer.username || 'N/A'}\n` +
+      `ឈ្មោះអ្នកប្រើប្រាស់: ${buyer.username || 'N/A'}\n` + 
       `អាសយដ្ឋាន: ${order.address || 'N/A'}\n` +
       '------------------------------\n' +
       `លេខកូដបញ្ជាទិញ: ${getShortOrderId(order._id)}\n` +
       '------------------------------\n' +
       `សង្ខេបការបញ្ជាទិញ:\n${summary}\n` +
-      `ស្ថានភាព: បានបញ្ជាក់\n` +
+      `ស្ថានភាព: Confirmed\n` +
       '------------------------------\n' +
       `សរុប: $${order.total_price.toFixed(2)}\n` +
       '------------------------------';
@@ -117,8 +116,7 @@ const notifyAdminsAboutConfirmedOrder = async (ctx, order, buyer) => {
               : (process.env.BOT_USERNAME ? `https://t.me/${process.env.BOT_USERNAME}` : 'https://t.me/');
 
             const channelMessage = '' +
-              '------------------------------\n' +
-              'ការបញ្ជាទិញថ្មីបានបញ្ជាក់\n' +
+              '✅ New Order Confirmed\n\n' +
               '------------------------------\n' +
               `ឈ្មោះពេញ: ${maskFullName(buyerName)}\n` +
               `Telegram ID: ${maskTelegramId(buyer.telegram_id || '')}\n` +
@@ -128,15 +126,25 @@ const notifyAdminsAboutConfirmedOrder = async (ctx, order, buyer) => {
               `លេខកូដបញ្ជាទិញ: ${getShortOrderId(order._id)}\n` +
               '------------------------------\n' +
               `សង្ខេបការបញ្ជាទិញ:\n${summary}\n` +
-              `ស្ថានភាព: បានបញ្ជាក់\n` +
+              `ស្ថានភាព: Confirmed\n` +
               '------------------------------\n' +
               `សរុប: $${order.total_price.toFixed(2)}\n` +
               '------------------------------';
 
+            // Link admin button directly to the admin Telegram account
+            const adminUrl = process.env.ADMIN_USERNAME
+              ? `https://t.me/${process.env.ADMIN_USERNAME.replace(/^@/, '')}`
+              : 'https://t.me/PAPA_Panha';
+
+            // Use a deep link so that clicking "start bot" opens a chat and triggers /start with a payload
+            const botDeepLink = botInfo && botInfo.username
+              ? `https://t.me/${botInfo.username}?start=order_${order._id}`
+              : (process.env.BOT_USERNAME ? `https://t.me/${process.env.BOT_USERNAME.replace(/^@/, '')}?start=order_${order._id}` : botLink);
+
             const channelKeyboard = Markup.inlineKeyboard([
               [
-                Markup.button.callback('របាយការណ៍អ្នកគ្រប់គ្រង', `admin_order_open:${order._id}`),
-                Markup.button.url('ចាប់ផ្តើមបូត', botLink)
+                Markup.button.url('admin', adminUrl),
+                Markup.button.url('start bot', botDeepLink)
               ]
             ]);
 
@@ -236,8 +244,7 @@ module.exports = async (ctx) => {
     const cartSummary = order.cart_items.map((item) => `- ${item.product_name} x${item.quantity} = $${item.total_price.toFixed(2)}`).join('\n');
     const channelLink = 'https://t.me/+mVENegLmW-xmYmNl';
     await ctx.reply(
-      `------------------------------\n` +
-      `✅ ការបញ្ជាទិញបានបញ្ជាក់!\n` +
+      `✅ Order Confirmed!\n\n` +
       `------------------------------\n` +
       `Telegram ID: ${telegramId}\n` +
       `ឈ្មោះពេញ: ${fullName}\n` +
@@ -248,16 +255,15 @@ module.exports = async (ctx) => {
       `សង្ខេបបញ្ជាទិញ:\n${cartSummary}\n` +
       `------------------------------\n` +
       `សរុប: $${order.total_price.toFixed(2)}\n` +
-      `ស្ថានភាព: បានបញ្ជាក់\n` +
+      `ស្ថានភាព: Confirmed\n` +
       `------------------------------`,
       Markup.inlineKeyboard([
-        [Markup.button.url('មើលលើឆានែល', channelLink)]
+        [Markup.button.url('View Channel', channelLink)]
       ])
     );
   } else {
     await ctx.reply(
-      `------------------------------\n` +
-      `✅ ការបញ្ជាទិញបានបញ្ជាក់!\n` +
+      `✅ Order Confirmed!\n\n` +
       `------------------------------\n` +
       `Telegram ID: ${telegramId}\n` +
       `ឈ្មោះពេញ: ${fullName}\n` +
@@ -270,10 +276,10 @@ module.exports = async (ctx) => {
       `បរិមាណ: ${order.quantity}\n` +
       `------------------------------\n` +
       `សរុប: $${order.total_price.toFixed(2)}\n` +
-      `ស្ថានភាព: បានបញ្ជាក់\n` +
+      `ស្ថានភាព: Confirmed\n` +
       `------------------------------`,
       Markup.inlineKeyboard([
-        [Markup.button.url('មើលលើឆានែល', 'https://t.me/+mVENegLmW-xmYmNl')]
+        [Markup.button.url('View Channel', 'https://t.me/+mVENegLmW-xmYmNl')]
       ])
     );
   }

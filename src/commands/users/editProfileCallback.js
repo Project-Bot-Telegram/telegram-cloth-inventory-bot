@@ -22,13 +22,13 @@ module.exports = async (ctx) => {
     await safeAnswerCbQuery(ctx);
 
     return ctx.reply(
-      `អ្នកអាចកែប្រែឈ្មោះពេញ និងអាសយដ្ឋាន។\n\n` +
-      `តម្លៃបច្ចុប្បន្ន:\n` +
+      `អ្នកអាចកែប្រែបានតែឈ្មោះពេញ និងអាសយដ្ឋានរបស់អ្នកតែប៉ុណ្ណោះ\n\n` +
+      `current profile:\n` +
       `• ឈ្មោះពេញ: ${user.full_name || 'N/A'}\n` +
       `• អាសយដ្ឋាន: ${user.address || 'N/A'}\n\n` +
       `តើអ្នកចង់បន្តកែប្រែមែនទេ?`,
       Markup.inlineKeyboard([
-        [Markup.button.callback('បោះបង់', 'edit_profile:cancel'), Markup.button.callback('បន្តកែ', 'edit_profile:continue')]
+        [Markup.button.callback('cancel', 'edit_profile:cancel'), Markup.button.callback('continue', 'edit_profile:continue')]
       ])
     );
   }
@@ -45,8 +45,8 @@ module.exports = async (ctx) => {
     };
 
     await safeAnswerCbQuery(ctx);
-    return ctx.reply('សូមផ្ញើឈ្មោះពេញថ្មីរបស់អ្នក ដើម្បីចាប់ផ្តើមកែប្រែ។', Markup.inlineKeyboard([
-      [Markup.button.callback('លេចចេញឲ្យប្រើឈ្មោះចាស់', 'edit_profile:skip_fullname')]
+    return ctx.reply('សូមបញ្ចូលឈ្មោះពេញថ្មីរបស់អ្នក:', Markup.inlineKeyboard([
+      [Markup.button.callback('skip ដើម្បីប្រើឈ្មោះចាស់', 'edit_profile:skip_fullname')]
     ]));
   }
 
@@ -68,8 +68,8 @@ module.exports = async (ctx) => {
     ctx.session.editProfile.stepIndex = 1;
 
     await safeAnswerCbQuery(ctx);
-    return ctx.reply('សូមផ្ញើអាសយដ្ឋានថ្មីរបស់អ្នក។', Markup.inlineKeyboard([
-      [Markup.button.callback('លេចចេញឲ្យប្រើអាសយដ្ឋានចាស់', 'edit_profile:skip_address')]
+    return ctx.reply('សូមផ្ញើអាសយដ្ឋានថ្មីរបស់អ្នក:', Markup.inlineKeyboard([
+      [Markup.button.callback('skip ដើម្បីប្រើអាសយដ្ឋានចាស់', 'edit_profile:skip_address')]
     ]));
   }
 
@@ -83,12 +83,13 @@ module.exports = async (ctx) => {
     ctx.session.editProfile.stepIndex = 2;
 
     await safeAnswerCbQuery(ctx);
-    const message = `សូមផ្ទៀងផ្ទាត់ព័ត៌មានប្រវត្តិថ្មីរបស់អ្នក:\n\n` +
+    const message = `សូមផ្ទៀងផ្ទាត់ព័ត៌មានប្រវត្តិរូបថ្មីរបស់អ្នក:\n\n` +
       `ឈ្មោះពេញ: ${ctx.session.editProfile.data.full_name}\n` +
-      `អាសយដ្ឋាន: ${ctx.session.editProfile.data.address}`;
+      `អាសយដ្ឋាន: ${ctx.session.editProfile.data.address}\n\n`; +
+      `សូមចុច "update" ដើម្បីរក្សាទុក ឬ "cancel" ដើម្បីបោះបង់។`;
 
     return ctx.reply(message, Markup.inlineKeyboard([
-      [Markup.button.callback('បោះបង់', 'confirm_edit:no'), Markup.button.callback('ផ្ទៀងផ្ទាត់', 'confirm_edit:yes')]
+      [Markup.button.callback('cancel', 'confirm_edit:no'), Markup.button.callback('update', 'confirm_edit:yes')]
     ]));
   }
 
@@ -102,7 +103,7 @@ module.exports = async (ctx) => {
 
     if (!confirmed) {
       ctx.session.editProfile = null;
-      return ctx.reply('ការអាប់ដេតប្រវត្តិបុគ្គលបានបោះបង់។');
+      return ctx.reply('ការអាប់ដេតប្រវត្តិរូបរបស់អ្នកបានបរ៉ាជ័យ!!');
     }
 
     const updatedData = ctx.session.editProfile.data;
@@ -110,7 +111,7 @@ module.exports = async (ctx) => {
     ctx.session.editProfile = null;
 
     return ctx.reply(
-      `ប្រវត្តិបុគ្គលបានធ្វើឲ្យទាន់សម័យជោគជ័យ។\n\n` +
+      `ប្រវត្តិរូបថ្មីរបស់អ្នកបានធ្វើការ update បានដោយជោគជ័យ!!\n\n` +
       `ឈ្មោះពេញ: ${updatedData.full_name}\n` +
       `អាសយដ្ឋាន: ${updatedData.address}`
     );

@@ -27,7 +27,7 @@ const buildOrderActionKeyboardRows = (order) => {
   if (order.status === 'confirmed') {
     rows.push([
       Markup.button.callback('❌expired', `admin_order_change:${order._id}:expired`),
-      Markup.button.callback('✔delivered', `admin_order_change:${order._id}:delivered`)
+      Markup.button.callback('✅delivered', `admin_order_change:${order._id}:delivered`)
     ]);
   }
   return rows.length ? rows : null;
@@ -75,10 +75,8 @@ const sendAdminOrderStatusPage = async (ctx, status, orders, startIndex, isCallb
 
 const showStatusMenu = async (ctx) => {
   return ctx.reply(
-    '------------------------------\n' +
-    'Manage Orders\n' +
-    '------------------------------\n' +
-    'Choose which order status to view:',
+    'គ្រប់គ្រងការបញ្ជាទិញ\n\n' +
+    'ជ្រើសរើសស្ថានភាពដើម្បីមើល:',
     Markup.inlineKeyboard([
       [Markup.button.callback('expired', 'admin_order_status:expired')],
       [Markup.button.callback('confirmed', 'admin_order_status:confirmed')],
@@ -148,10 +146,7 @@ const handleCallback = async (ctx) => {
     const shortId = getShortOrderId(orderId);
 
     return ctx.reply(
-      '------------------------------\n' +
-      'Confirm Status Change\n' +
-      '------------------------------\n' +
-      `Change order ${shortId} to ${status === 'expired' ? '❌expired' : '✔delivered'}?`,
+      `Change order ${shortId} to ${status === 'expired' ? '❌expired' : '✅delivered'}?`,
       Markup.inlineKeyboard([
         [
           Markup.button.callback('No', `admin_order_change_cancel:${orderId}`),

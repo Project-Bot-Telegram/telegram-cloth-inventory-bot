@@ -80,12 +80,12 @@ module.exports = async (ctx) => {
   };
 
   const buttons = Markup.inlineKeyboard([
-    [Markup.button.callback('Use profile address', 'order_address:profile')],
-    [Markup.button.callback('Use new address', 'order_address:new')]
+    [Markup.button.callback('ប្រើអាសយដ្ឋានក្នុង​​ profile', 'order_address:profile')],
+    [Markup.button.callback('ប្រើអាសយដ្ឋានថ្មី', 'order_address:new')]
   ]);
 
   return ctx.reply(
-    'Choose delivery address for your cart order:',
+    'សូមជ្រើសអាសយដ្ឋានដឹកជញ្ជូនសម្រាប់ការបញ្ជាទិញទាំងអស់ក្នុងកន្ត្រករបស់អ្នក:',
     buttons
   );
 };
