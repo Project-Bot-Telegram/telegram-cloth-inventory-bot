@@ -169,7 +169,7 @@ bot.on('callback_query', async (ctx) => {
     return adminProductActions.handleCallback(ctx);
   }
 
-  if (data.startsWith('category_info:') || data.startsWith('category_history_edit:') || data.startsWith('category_edit:') || data.startsWith('category_delete:') || data.startsWith('category_confirm_edit:')) {
+  if (data.startsWith('category_info:') || data.startsWith('category_history_edit:') || data.startsWith('category_edit:') || data.startsWith('category_delete:') || data.startsWith('category_delete_confirm:') || data.startsWith('category_confirm_edit:')) {
     return manageCategory.handleCallback(ctx);
   }
 

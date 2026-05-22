@@ -4,12 +4,18 @@ const Category = require('../../models/Category');
 const Product = require('../../models/Product');
 const { safeAnswerCbQuery } = require('../../utils/telegramHelper');
 
+const deleteCategory = async (ctx, category) => {
+  const product = await Product.findOne({ category_id: category._id });
+  if (product) {
+    return ctx.reply('មិនអាចលុបប្រភេទនេះបានទេ ព្រោះមានផលិតផលដែលស្ថិតនៅក្នុងប្រភេទនេះ!! សូមផ្លាស់ប្តូរប្រភេទផលិតផលទាំងអស់ក្នុងប្រភេទនេះទៅប្រភេទផ្សេងមុនពេលលុប។');
+  }
+
+  await category.deleteOne();
+  return ctx.reply('ប្រភេទផលិតផលត្រូវបានលុបដោយជោគជ័យ!!');
+};
+
 const listCategories = async (ctx) => {
   const categories = await Category.find();
-
-  if (categories.length === 0) {
-    return ctx.reply('No categories available.');
-  }
 
   const buttons = [
     [Markup.button.callback('+ បន្ថែមប្រភេទផលិតផលថ្មី +', 'admin:add_category:continue')],
@@ -34,6 +40,29 @@ const handleCallback = async (ctx) => {
   const action = parts[0];
   const subAction = parts[1];
   const categoryId = parts[2];
+
+  if (action === 'category_delete_confirm') {
+    await safeAnswerCbQuery(ctx);
+
+    if (!mongoose.Types.ObjectId.isValid(categoryId)) {
+      return ctx.reply('Invalid category selected.');
+    }
+
+    if (subAction === 'no') {
+      return ctx.reply('ការលុបប្រភេទផលិតផលត្រូវបានបោះបង់!!');
+    }
+
+    if (subAction === 'yes') {
+      const category = await Category.findById(categoryId);
+      if (!category) {
+        return ctx.reply('Category not found.');
+      }
+
+      return deleteCategory(ctx, category);
+    }
+
+    return ctx.reply('Invalid delete confirmation.');
+  }
 
   // Handle confirmation callbacks
   if (action === 'category_confirm_edit') {
@@ -154,13 +183,15 @@ const handleCallback = async (ctx) => {
   }
 
   if (action === 'category_delete') {
-    const product = await Product.findOne({ category_id: category._id });
-    if (product) {
-      return ctx.reply('មិនអាចលុបប្រភេទនេះបានទេ ព្រោះមានផលិតផលដែលស្ថិតនៅក្នុងប្រភេទនេះ!! សូមផ្លាស់ប្តូរប្រភេទផលិតផលទាំងអស់ក្នុងប្រភេទនេះទៅប្រភេទផ្សេងមុនពេលលុប។');
-    }
-
-    await category.deleteOne();
-    return ctx.reply('ប្រភេទផលិតផលត្រូវបានលុបដោយជោគជ័យ!!');
+    return ctx.reply(
+      `តើអ្នកពិតជាចង់លុបប្រភេទផលិតផល "${category.name}" មែនទេ?`,
+      Markup.inlineKeyboard([
+        [
+          Markup.button.callback('No', `category_delete_confirm:no:${category._id}`),
+          Markup.button.callback('Yes', `category_delete_confirm:yes:${category._id}`)
+        ]
+      ])
+    );
   }
 };
 

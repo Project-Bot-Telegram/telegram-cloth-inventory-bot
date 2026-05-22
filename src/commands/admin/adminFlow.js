@@ -1,4 +1,5 @@
 const { Markup } = require('telegraf');
+const fs = require('fs');
 const mongoose = require('mongoose');
 const Product = require('../../models/Product');
 const Category = require('../../models/Category');
@@ -12,6 +13,73 @@ const productSteps = [
   { key: 'quantity', prompt: 'សូមបញ្ចូលចំនួនផលិតផល:' },
   { key: 'image', prompt: 'សូមបញ្ចូលរូបភាពរបស់ផលិតផល:' }
 ];
+
+const isValidImageText = (text) => {
+  if (!text) {
+    return false;
+  }
+
+  if (/^https?:\/\//i.test(text)) {
+    return true;
+  }
+
+  if (fs.existsSync(text)) {
+    return true;
+  }
+
+  return text.length >= 20;
+};
+
+const getPhotoSource = (image) => {
+  if (!image) {
+    return null;
+  }
+
+  if (/^https?:\/\//i.test(image)) {
+    return { url: image };
+  }
+
+  if (fs.existsSync(image)) {
+    return { source: image };
+  }
+
+  return image;
+};
+
+const sendCategorySelection = async (ctx) => {
+  const categories = await Category.find().sort({ name: 1 });
+
+  if (categories.length === 0) {
+    return ctx.reply(
+      'សូមបង្កើតប្រភេទផលិតផលជាមុនសិន។',
+      Markup.inlineKeyboard([
+        [Markup.button.callback('+ បន្ថែមប្រភេទផលិតផលថ្មី +', 'admin:add_category:continue')]
+      ])
+    );
+  }
+
+  const buttons = categories.map((category) => [
+    Markup.button.callback(category.name, `admin:select_category:${category._id}`)
+  ]);
+
+  return ctx.reply(
+    'សូមបញ្ចូលប្រភេទឲ្យផលិតផល:',
+    Markup.inlineKeyboard(buttons)
+  );
+};
+
+const sendProductStepPrompt = async (ctx, stepIndex) => {
+  const step = productSteps[stepIndex];
+  if (!step) {
+    return false;
+  }
+
+  if (step.key === 'category') {
+    return sendCategorySelection(ctx);
+  }
+
+  return ctx.reply(step.prompt);
+};
 
 const getAdminFlowUser = async (ctx) => {
   const user = await User.findOne({ telegram_id: ctx.from.id });
@@ -85,11 +153,9 @@ const sendProductConfirmation = async (ctx, data) => {
   }
 
   try {
-    const photoSource = data.image.startsWith('http')
-      ? { url: data.image }
-      : data.image;
+    const photoSource = getPhotoSource(data.image);
 
-    return ctx.replyWithPhoto(photoSource, {
+    return await ctx.replyWithPhoto(photoSource, {
       caption: message,
       ...keyboard
     });
@@ -120,7 +186,7 @@ const startAddProductFlow = async (ctx) => {
     data: {}
   };
 
-  await ctx.reply('សូមបញ្ចូលឈ្មោះផលិតផលថ្មីរបស់អ្នក:');
+  await sendProductStepPrompt(ctx, 0);
 };
 
 const startAddCategoryFlow = async (ctx) => {
@@ -171,6 +237,34 @@ const handleCallback = async (ctx) => {
     }
   }
 
+  if (target === 'select_category') {
+    await safeAnswerCbQuery(ctx);
+
+    if (!ctx.session || !ctx.session.adminFlow || ctx.session.adminFlow.type !== 'product') {
+      return ctx.reply('មិនមានការបន្ថែមផលិតផលកំពុងរងចាំ។');
+    }
+
+    const flow = ctx.session.adminFlow;
+    const step = productSteps[flow.stepIndex];
+    if (!step || step.key !== 'category') {
+      return ctx.reply('ការជ្រើសប្រភេទផលិតផលមិនត្រឹមត្រូវ។');
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(action)) {
+      return ctx.reply('ការជ្រើសប្រភេទផលិតផលមិនត្រឹមត្រូវ។');
+    }
+
+    const category = await Category.findById(action);
+    if (!category) {
+      return ctx.reply('រកមិនឃើញប្រភេទផលិតផល។');
+    }
+
+    flow.data.category = category.name;
+    flow.data.categoryId = category._id.toString();
+    flow.stepIndex += 1;
+    return sendProductStepPrompt(ctx, flow.stepIndex);
+  }
+
   if (target === 'submit_product') {
     await safeAnswerCbQuery(ctx);
     const confirmed = action === 'yes';
@@ -184,9 +278,11 @@ const handleCallback = async (ctx) => {
       return ctx.reply('ការបន្ថែមផលិតផលថ្មីរបស់អ្នកត្រូវបានបរាជ័យ!!');
     }
 
-    const { name, category, price, quantity, image } = ctx.session.adminFlow.data;
+    const { name, category, categoryId, price, quantity, image } = ctx.session.adminFlow.data;
 
-    const categoryDoc = await Category.findOne({ name: category });
+    const categoryDoc = categoryId && mongoose.Types.ObjectId.isValid(categoryId)
+      ? await Category.findById(categoryId)
+      : await Category.findOne({ name: category });
     if (!categoryDoc) {
       ctx.session.adminFlow = null;
       return ctx.reply('យើងរកមិនឃើញប្រភេទផលិតផលដែលអ្នកចង់បន្ថែមនោះទេ!! \nការបន្ថែមផលិតផលថ្មីរបស់អ្នកត្រូវបានបរាជ័យ!! \nសូមបង្កើតប្រភេទផលិតផលដែលអ្នកចង់បន្ថែមជាមិនសិន!!');
@@ -263,8 +359,10 @@ const handleMessage = async (ctx) => {
     if (step.key === 'image') {
       if (ctx.message.photo && ctx.message.photo.length > 0) {
         flow.data.image = ctx.message.photo[ctx.message.photo.length - 1].file_id;
-      } else if (text) {
+      } else if (isValidImageText(text)) {
         flow.data.image = text;
+      } else if (text) {
+        return ctx.reply('សូមផ្ញើរូបថត URL រូបភាព ឬ Telegram file id ត្រឹមត្រូវ។');
       } else {
         return ctx.reply('សូមផ្ញើរូបថតផលិតផលរបស់អ្នក!!');
       }
@@ -273,7 +371,14 @@ const handleMessage = async (ctx) => {
         return ctx.reply('សូមផ្ញើព័ត៌មានដែលបានស្នើសុំ!!');
       }
 
-      if (step.key === 'price') {
+      if (step.key === 'category') {
+        const category = await Category.findOne({ name: text });
+        if (!category) {
+          return sendCategorySelection(ctx);
+        }
+        flow.data.category = category.name;
+        flow.data.categoryId = category._id.toString();
+      } else if (step.key === 'price') {
         const parsedPrice = parseFloat(text);
         if (Number.isNaN(parsedPrice)) {
           return ctx.reply('តម្លៃមិនត្រឹមត្រូវ! សូមបញ្ចូលចំនួនលេខត្រឹមត្រូវ!!');
@@ -292,7 +397,7 @@ const handleMessage = async (ctx) => {
 
     flow.stepIndex += 1;
     if (flow.stepIndex < productSteps.length) {
-      return ctx.reply(productSteps[flow.stepIndex].prompt);
+      return sendProductStepPrompt(ctx, flow.stepIndex);
     }
 
     return sendProductConfirmation(ctx, flow.data);
