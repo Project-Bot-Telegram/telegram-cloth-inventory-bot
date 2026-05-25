@@ -99,6 +99,8 @@ bot.on('message', async (ctx, next) => {
 
 
 bot.command('status', statusCommand);
+bot.command('support', supportCommand);
+bot.command('help', helpCommand);
 bot.command('admin', roleMiddleware, adminCommand);
 bot.command('search', authMiddleware, searchProduct);
 bot.command('cart', authMiddleware, viewCartCallback);
