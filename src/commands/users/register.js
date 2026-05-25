@@ -1,22 +1,49 @@
+const { Markup } = require('telegraf');
 const User = require('../../models/User');
 const { mainMenuKeyboard } = require('../../utils/keyboards');
 const supportCommand = require('../support/support');
 
 const registrationQuestions = [
-  { key: 'full_name', prompt: 'សូមបញ្ចូលឈ្មោះពេញរបស់អ្នក:' },
-  { key: 'address', prompt: 'សូមបញ្ចូលអាសយដ្ឋានដឹកជញ្ជូនរបស់អ្នក:' }
+  { key: 'phone_number', prompt: 'សូមបញ្ចូលលេខទូរស័ព្ទរបស់អ្នក:' },
+  { key: 'address', prompt: 'សូមបញ្ចូលទីតាំងផ្ទះរបស់អ្នក:' }
 ];
+
+const getTelegramFullName = (telegramUser) => {
+  const fullName = `${telegramUser.first_name || ''}${telegramUser.last_name ? ' ' + telegramUser.last_name : ''}`.trim();
+  return fullName || telegramUser.username || `Telegram User ${telegramUser.id}`;
+};
+
+const roleLabel = (role) => {
+  if (role === 'admin') return 'admin';
+  if (role === 'staff') return 'user';
+  return role || 'user';
+};
+
+const buildProfileMessage = (user) => {
+  return '' +
+    '------------------------------\n' +
+    'Profile Information\n' +
+    '------------------------------\n' +
+    `Telegram ID : ${user.telegram_id}\n` +
+    `ឈ្មោះ : ${user.full_name}\n` +
+    `Username : ${user.username || 'N/A'}\n` +
+    `Phone : ${user.phone_number || 'N/A'}\n` +
+    `ទីតាំង : ${user.address || 'N/A'}\n` +
+    `role : ${roleLabel(user.role)}\n` +
+    `date : ${user.created_at.toLocaleString()}\n` +
+    '------------------------------';
+};
 
 const startRegistration = async (ctx) => {
   ctx.session = ctx.session || {};
   const telegramUser = ctx.from;
-  const username = telegramUser.username || `${telegramUser.first_name || ''}${telegramUser.last_name ? ' ' + telegramUser.last_name : ''}`.trim();
 
   ctx.session.registration = {
     stepIndex: 0,
     data: {
       telegram_id: telegramUser.id,
-      username: username || null
+      username: telegramUser.username || null,
+      full_name: getTelegramFullName(telegramUser)
     }
   };
 
@@ -25,10 +52,60 @@ const startRegistration = async (ctx) => {
   await ctx.reply(registrationQuestions[0].prompt);
 };
 
+const showRegistrationConfirmation = async (ctx) => {
+  const registration = ctx.session.registration;
+  const data = registration.data;
+  registration.awaitingConfirmation = true;
+
+  return ctx.reply(
+    'សូមពិនិត្យមើល Information របស់អ្នក:\n\n' +
+    `លេខទូរស័ព្ទ: ${registration.data.phone_number || 'N/A'}\n` +
+    `ទីតាំង: ${registration.data.address || 'N/A'}\n\n` +
+    '- improve ដើម្បីកែប្រែ \n- cancel ដើម្បីបញ្ចូលឡើងវិញ!!',
+    Markup.inlineKeyboard([
+      [
+        Markup.button.callback('cancel', 'registration_confirm:cancel'),
+        Markup.button.callback('improve', 'registration_confirm:improve')
+      ]
+    ])
+  );
+};
+
+const saveRegisteredUser = async (ctx) => {
+  const user = new User(ctx.session.registration.data);
+
+  try {
+    await user.save();
+  } catch (error) {
+    if (error && error.code === 11000) {
+      ctx.session.registration = null;
+      return ctx.reply('អ្នកបានចុះឈ្មោះរួចហើយ!! សូមប្រើ /start ដើម្បីចាប់ផ្តើមប្រើប្រាស់។');
+    }
+
+    throw error;
+  }
+
+  ctx.session.registration = null;
+
+  const doneMsg = '' +
+    'ការចុះឈ្មោះបានជោគជ័យ\n' +
+    `សូមអរគុណ "${user.full_name}!" \nសម្រាប់ការចុះឈ្មោះរបស់អ្នក បានបញ្ចប់ដោយជោគជ័យ!!\n`;
+  await ctx.reply(doneMsg, mainMenuKeyboard(user.role === 'admin'));
+  await ctx.reply(buildProfileMessage(user));
+
+  if (!user.role || user.role !== 'admin') {
+    await supportCommand(ctx);
+  }
+};
+
 const handleRegistrationResponse = async (ctx, text) => {
   const registration = ctx.session.registration;
-  const currentQuestion = registrationQuestions[registration.stepIndex];
 
+  if (registration.awaitingConfirmation) {
+    return ctx.reply('សូមប្រើប្រាស់ប៊ូតុង cancel ឬ improve ខាងក្រោមនៃព័ត៌មានរបស់អ្នក:');
+  }
+
+  const currentQuestion = registrationQuestions[registration.stepIndex];
   registration.data[currentQuestion.key] = text.trim();
   registration.stepIndex += 1;
 
@@ -38,23 +115,52 @@ const handleRegistrationResponse = async (ctx, text) => {
     return;
   }
 
-  const user = new User(registration.data);
-  await user.save();
-
-  ctx.session.registration = null;
-
-  const doneMsg = '' +
-
-    'ការចុះឈ្មោះបានជោគជ័យ\n' +
-    `សូមអរគុណ"${user.full_name}!" សម្រាប់ការចុះឈ្មោះរបស់អ្នក​ បានបញ្ចប់ដោយជោគជ័យ!!\n`;
-  await ctx.reply(doneMsg, mainMenuKeyboard(user.role === 'admin'));
-  // Show support/help message to newly registered non-admin users
-  if (!user.role || user.role !== 'admin') {
-    await supportCommand(ctx);
-  }
+  return showRegistrationConfirmation(ctx);
 };
 
-module.exports = async (ctx) => {
+const handleRegistrationCallback = async (ctx) => {
+  const callbackQuery = ctx.callbackQuery;
+  if (!callbackQuery || !callbackQuery.data || !callbackQuery.data.startsWith('registration_confirm:')) {
+    return false;
+  }
+
+  const action = callbackQuery.data.split(':')[1];
+
+  if (!ctx.session || !ctx.session.registration) {
+    await ctx.answerCbQuery();
+    await ctx.reply('គ្មានការចុះឈ្មោះដែលកំពុងរងចាំការបញ្ជាក់។ សូមផ្ញើ /start ដើម្បីចុះឈ្មោះ។');
+    return true;
+  }
+
+  if (action === 'cancel') {
+    ctx.session.registration.stepIndex = 0;
+    ctx.session.registration.awaitingConfirmation = false;
+    delete ctx.session.registration.data.phone_number;
+    delete ctx.session.registration.data.address;
+
+    await ctx.answerCbQuery();
+    await ctx.reply('សូមបញ្ចូលលេខទូរស័ព្ទរបស់អ្នកឡើងវិញ:');
+    return true;
+  }
+
+  if (action === 'improve') {
+    if (!ctx.session.registration.data.phone_number || !ctx.session.registration.data.address) {
+      ctx.session.registration.stepIndex = 0;
+      ctx.session.registration.awaitingConfirmation = false;
+      await ctx.answerCbQuery('សូមបញ្ចូលលេខទូរស័ព្ទ និង ទីតាំងរបស់អ្នកជាមុនសិន។', { show_alert: true });
+      return true;
+    }
+
+    await ctx.answerCbQuery();
+    await saveRegisteredUser(ctx);
+    return true;
+  }
+
+  await ctx.answerCbQuery('Invalid registration action.', { show_alert: true });
+  return true;
+};
+
+const registerCommand = async (ctx) => {
   if (!ctx.from || !ctx.from.id) {
     return ctx.reply('មិនអាចកំណត់គណនីរបស់អ្នកបាន!!');
   }
@@ -69,21 +175,17 @@ module.exports = async (ctx) => {
 
     const displayName = existingUser.full_name || existingUser.username || 'there';
 
-    // Detect if /start was called with a payload (deep link). Telegram sends: "/start <payload>"
     const text = ctx.message && ctx.message.text ? ctx.message.text.trim() : '';
     const parts = text.split(/\s+/);
     const startPayload = parts.length > 1 ? parts.slice(1).join(' ') : null;
-
-    // Only treat deep-links that match our order payload pattern as requests to show support
     const isOrderPayload = startPayload && /^order_/.test(startPayload);
 
     if (isOrderPayload) {
-      await ctx.reply(`សូមស្វាគមន៍នៃការត្រឡប់មកប្រើប្រាស់ម្ដងទៀត , ${displayName}!`, mainMenuKeyboard(existingUser.role === 'admin'));
+      await ctx.reply(`សូមស្វាគមន៍នៃការត្រឡប់មកប្រើប្រាស់ម្ដងទៀត!! ${displayName}!`, mainMenuKeyboard(existingUser.role === 'admin'));
       return supportCommand(ctx);
     }
 
-    // Regular /start: show welcome. For non-admin users (staff/customers) also show support help.
-    await ctx.reply(`សូមស្វាគមន៍នៃការត្រឡប់មកប្រើប្រាស់ម្ដងទៀត , ${displayName}!`, mainMenuKeyboard(existingUser.role === 'admin'));
+    await ctx.reply(`សូមស្វាគមន៍នៃការត្រឡប់មកប្រើប្រាស់ម្ដងទៀត!! ${displayName}!`, mainMenuKeyboard(existingUser.role === 'admin'));
     if (!existingUser.role || existingUser.role !== 'admin') {
       return supportCommand(ctx);
     }
@@ -102,3 +204,7 @@ module.exports = async (ctx) => {
 
   return startRegistration(ctx);
 };
+
+registerCommand.handleCallback = handleRegistrationCallback;
+
+module.exports = registerCommand;

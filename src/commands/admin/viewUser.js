@@ -9,10 +9,19 @@ module.exports = async (ctx) => {
   try {
     const user = await User.findOne({ telegram_id: parseInt(userId, 10) });
     if (!user) {
-      return ctx.reply(`❌ User not found with ID: ${userId}`);
+      return ctx.reply(`User not found with ID: ${userId}`);
     }
 
-    await ctx.reply(`👤 User Information\n\nTelegram ID: ${user.telegram_id}\nFull Name: ${user.full_name}\nUsername: ${user.username || 'N/A'}\nLanguage: ${user.language}\nRole: ${user.role}\nCreated: ${user.created_at.toLocaleString()}`);
+    await ctx.reply(
+      `User Information\n\n` +
+      `Telegram ID: ${user.telegram_id}\n` +
+      `Full Name: ${user.full_name}\n` +
+      `Username: ${user.username || 'N/A'}\n` +
+      `Phone: ${user.phone_number || 'N/A'}\n` +
+      `Address: ${user.address || 'N/A'}\n` +
+      `Role: ${user.role}\n` +
+      `Created: ${user.created_at.toLocaleString()}`
+    );
   } catch (err) {
     console.error('view-user error', err);
     await ctx.reply('Error fetching user information.');
