@@ -20,13 +20,14 @@ module.exports = async (ctx) => {
 
   const message = '' +
     '------------------------------\n' +
-    'profile\n' +
+    'Profile Information\n' +
     '------------------------------\n' +
     `Telegram ID : ${user.telegram_id}\n` +
-    `ឈ្មោះពេញ : ${user.full_name}\n` +
+    `ឈ្មោះ : ${user.full_name}\n` +
     `Username : ${user.username || 'N/A'}\n` +
-    `អាសយដ្ឋាន : ${user.address || 'N/A'}\n` +
-    `តួនាទី : ${roleLabel(user.role)}\n` +
+    `Phone : ${user.phone_number || 'N/A'}\n` +
+    `ទីតាំង : ${user.address || 'N/A'}\n` +
+    `role : ${roleLabel(user.role)}\n` +
     `date : ${user.created_at.toLocaleString()}\n` +
     '------------------------------';
 

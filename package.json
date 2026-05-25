@@ -10,6 +10,7 @@
   "scripts": {
     "start": "node index.js",
     "clear-db": "node scripts/clearDatabase.js",
+    "clear-non-admin-users": "node scripts/clearNonAdminUsers.js",
     "promote-admin": "node scripts/promoteAdmin.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

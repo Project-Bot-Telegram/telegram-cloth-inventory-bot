@@ -124,6 +124,10 @@ bot.on('callback_query', async (ctx) => {
     return;
   }
 
+  if (data.startsWith('registration_confirm:')) {
+    return registerCommand.handleCallback(ctx);
+  }
+
   if (data.startsWith('confirm_order:')) {
     return confirmOrderCallback(ctx);
   }

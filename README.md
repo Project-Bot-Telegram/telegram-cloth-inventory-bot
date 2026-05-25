@@ -37,7 +37,8 @@ npm start
 ### 1. Start and register
 
 - Send `/start` to the bot.
-- If you are a new user, the bot will ask for your full name and save your profile.
+- If you are a new user, the bot uses your Telegram name, then asks for your phone number and address.
+- The bot shows your phone number and address for confirmation. Choose `improve` to save, or `cancel` to enter them again.
 - If you are already registered, the bot will welcome you and show the main menu.
 
 ### 2. Use the main menu
@@ -159,4 +160,5 @@ Detailed guides are available in the `docs/` folder:
 
 - `npm start` — Start the bot.
 - `npm run clear-db` — Reset the database.
+- `npm run clear-non-admin-users` — Delete users whose role is not `admin`; admin users are kept.
 - `npm run promote-admin <telegram_id>` — Promote a Telegram user to admin.

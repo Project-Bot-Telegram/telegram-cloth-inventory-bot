@@ -174,6 +174,7 @@ module.exports = async (ctx) => {
   const orderId = data.split(':')[1];
   if (!mongoose.Types.ObjectId.isValid(orderId)) {
     await safeAnswerCbQuery(ctx, 'ការបញ្ជាក់ការបញ្ជាទិញមិនត្រឹមត្រូវ។');
+    return;
   }
 
   const user = await User.findOne({ telegram_id: ctx.from.id });

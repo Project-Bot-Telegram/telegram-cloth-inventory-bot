@@ -2,6 +2,29 @@ const { Markup } = require('telegraf');
 const { safeAnswerCbQuery } = require('../../utils/telegramHelper');
 const User = require('../../models/User');
 
+const roleLabel = (role) => {
+  if (role === 'admin') return 'admin';
+  if (role === 'staff') return 'user';
+  return role || 'user';
+};
+
+const confirmEditProfile = (ctx) => {
+  const data = ctx.session.editProfile.data;
+
+  return ctx.reply(
+    'សូមពិនិត្យមើល Information របស់អ្នក:\n\n' +
+    `លេខទូរស័ព្ទ: ${data.phone_number || 'N/A'}\n` +
+    `ទីតាំង: ${data.address || 'N/A'}\n\n` +
+    '- update ដើម្បីរក្សាទុកព័ត៌មាននេះ \n- cancel ដើម្បីបញ្ចូលឡើងវិញ!!',
+    Markup.inlineKeyboard([
+      [
+        Markup.button.callback('cancel', 'confirm_edit:no'),
+        Markup.button.callback('update', 'confirm_edit:yes')
+      ]
+    ])
+  );
+};
+
 module.exports = async (ctx) => {
   const callbackQuery = ctx.callbackQuery;
   if (!callbackQuery || !callbackQuery.data) {
@@ -14,39 +37,41 @@ module.exports = async (ctx) => {
 
   const user = await User.findOne({ telegram_id: ctx.from.id });
   if (!user) {
-    await safeAnswerCbQuery(ctx, 'សូមចុះឈ្មោះជាមុនដោយផ្ញើ /start។', { show_alert: true });
+    await safeAnswerCbQuery(ctx, 'សូមធ្វើការចុះឈ្មោះជាមុនសិនដោយប្រើ​​ command /start.', { show_alert: true });
     return;
   }
 
-  if (action === 'start') {
+  if (type === 'edit_profile' && action === 'start') {
     await safeAnswerCbQuery(ctx);
 
     return ctx.reply(
-      `អ្នកអាចកែប្រែបានតែឈ្មោះពេញ និងអាសយដ្ឋានរបស់អ្នកតែប៉ុណ្ណោះ\n\n` +
-      `current profile:\n` +
-      `• ឈ្មោះពេញ: ${user.full_name || 'N/A'}\n` +
-      `• អាសយដ្ឋាន: ${user.address || 'N/A'}\n\n` +
-      `តើអ្នកចង់បន្តកែប្រែមែនទេ?`,
+      'អ្នកអាចកែប្រែតែលេខទូរស័ព្ទ និង ទីតាំងរបស់អ្នកបានតែប៉ុណ្ណោះ:\n\n' +
+      `លេខទូរស័ព្ទ: ${user.phone_number || 'N/A'}\n` +
+      `ទីតាំង: ${user.address || 'N/A'}\n\n` +
+      '- continue ដើម្បីបន្តកែប្រែ profile របស់អ្នក \n- cancel ដើម្បីបោះបង់ការកែប្រែ!!',
       Markup.inlineKeyboard([
-        [Markup.button.callback('cancel', 'edit_profile:cancel'), Markup.button.callback('continue', 'edit_profile:continue')]
+        [
+          Markup.button.callback('cancel', 'edit_profile:cancel'),
+          Markup.button.callback('continue', 'edit_profile:continue')
+        ]
       ])
     );
   }
 
-  if (action === 'continue') {
+  if (type === 'edit_profile' && action === 'continue') {
     ctx.session = ctx.session || {};
     ctx.session.editProfile = {
       stepIndex: 0,
       data: {},
       originalData: {
-        full_name: user.full_name || '',
+        phone_number: user.phone_number || '',
         address: user.address || ''
       }
     };
 
     await safeAnswerCbQuery(ctx);
-    return ctx.reply('សូមបញ្ចូលឈ្មោះពេញថ្មីរបស់អ្នក:', Markup.inlineKeyboard([
-      [Markup.button.callback('skip ដើម្បីប្រើឈ្មោះចាស់', 'edit_profile:skip_fullname')]
+    return ctx.reply('សូមបញ្ចូលលេខទូរស័ព្ទថ្មីរបស់អ្នក:', Markup.inlineKeyboard([
+      [Markup.button.callback('skip ដើម្បីរក្សាទុកលេខចាស់', 'edit_profile:skip_phone')]
     ]));
   }
 
@@ -55,27 +80,27 @@ module.exports = async (ctx) => {
     if (ctx.session) {
       ctx.session.editProfile = null;
     }
-    return ctx.reply('ការកែប្រែប្រវត្តិបុគ្គលបានបោះបង់។');
+    return ctx.reply('Profile edit cancelled.');
   }
 
-  if (type === 'edit_profile' && action === 'skip_fullname') {
+  if (type === 'edit_profile' && action === 'skip_phone') {
     if (!ctx.session || !ctx.session.editProfile) {
-      await safeAnswerCbQuery(ctx, 'មិនមានកម្មវិធីកែប្រែសកម្មទេ។', { show_alert: true });
+      await safeAnswerCbQuery(ctx, 'No active profile edit.', { show_alert: true });
       return;
     }
 
-    ctx.session.editProfile.data.full_name = ctx.session.editProfile.originalData.full_name;
+    ctx.session.editProfile.data.phone_number = ctx.session.editProfile.originalData.phone_number;
     ctx.session.editProfile.stepIndex = 1;
 
     await safeAnswerCbQuery(ctx);
-    return ctx.reply('សូមផ្ញើអាសយដ្ឋានថ្មីរបស់អ្នក:', Markup.inlineKeyboard([
-      [Markup.button.callback('skip ដើម្បីប្រើអាសយដ្ឋានចាស់', 'edit_profile:skip_address')]
+    return ctx.reply('សូមបញ្ចូលទីតាំងថ្មីរបស់អ្នក:', Markup.inlineKeyboard([
+      [Markup.button.callback('skip ដើម្បីរក្សាទុកទីតាំងចាស់', 'edit_profile:skip_address')]
     ]));
   }
 
   if (type === 'edit_profile' && action === 'skip_address') {
     if (!ctx.session || !ctx.session.editProfile) {
-      await safeAnswerCbQuery(ctx, 'មិនមានកម្មវិធីកែប្រែសកម្មទេ។', { show_alert: true });
+      await safeAnswerCbQuery(ctx, 'គ្មានការកែប្រែ profile !!', { show_alert: true });
       return;
     }
 
@@ -83,14 +108,7 @@ module.exports = async (ctx) => {
     ctx.session.editProfile.stepIndex = 2;
 
     await safeAnswerCbQuery(ctx);
-    const message = `សូមផ្ទៀងផ្ទាត់ព័ត៌មានប្រវត្តិរូបថ្មីរបស់អ្នក:\n\n` +
-      `ឈ្មោះពេញ: ${ctx.session.editProfile.data.full_name}\n` +
-      `អាសយដ្ឋាន: ${ctx.session.editProfile.data.address}\n\n`; +
-      `សូមចុច "update" ដើម្បីរក្សាទុក ឬ "cancel" ដើម្បីបោះបង់។`;
-
-    return ctx.reply(message, Markup.inlineKeyboard([
-      [Markup.button.callback('cancel', 'confirm_edit:no'), Markup.button.callback('update', 'confirm_edit:yes')]
-    ]));
+    return confirmEditProfile(ctx);
   }
 
   if (type === 'confirm_edit') {
@@ -98,12 +116,12 @@ module.exports = async (ctx) => {
     await safeAnswerCbQuery(ctx);
 
     if (!ctx.session || !ctx.session.editProfile || !ctx.session.editProfile.data) {
-      return ctx.reply('មិនមានការផ្លាស់ប្តូរប្រវត្តិដែលកំពុងរងចាំ។');
+      return ctx.reply('គ្មានការធ្វើបច្ចុប្បន្នភាព profile ដែលកំពុងរងចាំការបញ្ជាក់។');
     }
 
     if (!confirmed) {
       ctx.session.editProfile = null;
-      return ctx.reply('ការអាប់ដេតប្រវត្តិរូបរបស់អ្នកបានបរ៉ាជ័យ!!');
+      return ctx.reply('ការ update profile ត្រូវបាន​ concel !!');
     }
 
     const updatedData = ctx.session.editProfile.data;
@@ -111,11 +129,20 @@ module.exports = async (ctx) => {
     ctx.session.editProfile = null;
 
     return ctx.reply(
-      `ប្រវត្តិរូបថ្មីរបស់អ្នកបានធ្វើការ update បានដោយជោគជ័យ!!\n\n` +
-      `ឈ្មោះពេញ: ${updatedData.full_name}\n` +
-      `អាសយដ្ឋាន: ${updatedData.address}`
+      'ការ​ update profile ទទួលបានជោគជ័យ!!\n\n' +
+      '------------------------------\n' +
+      'Profile Information\n' +
+      '------------------------------\n' +
+      `Telegram ID : ${user.telegram_id}\n` +
+      `ឈ្មោះ : ${user.full_name}\n` +
+      `Username : ${user.username || 'N/A'}\n` +
+      `Phone : ${user.phone_number || 'N/A'}\n` +
+      `ទីតាំង : ${user.address || 'N/A'}\n` +
+      `role : ${roleLabel(user.role)}\n` +
+      `date : ${user.created_at.toLocaleString()}\n` +
+      '------------------------------'
     );
   }
 
-  await safeAnswerCbQuery(ctx, 'សកម្មភាពប្រវត្តិបុគ្គលមិនត្រឹមត្រូវ។', { show_alert: true });
+  await safeAnswerCbQuery(ctx, 'Invalid profile action.', { show_alert: true });
 };
