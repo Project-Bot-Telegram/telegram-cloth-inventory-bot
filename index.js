@@ -14,7 +14,6 @@ const totalUserCommand = require('./src/commands/admin/totalUser');
 const viewUserCommand = require('./src/commands/admin/viewUser');
 const promoteUserCommand = require('./src/commands/admin/promoteUser');
 const adminFlow = require('./src/commands/admin/adminFlow');
-const listCategory = require('./src/commands/categories/listCategory');
 const searchProduct = require('./src/commands/products/searchProduct');
 const orderHistoryCommand = require('./src/commands/orders/orderHistory');
 const confirmOrderCallback = require('./src/commands/orders/confirmOrder');
