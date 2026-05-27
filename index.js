@@ -124,7 +124,7 @@ bot.on('callback_query', async (ctx) => {
     return;
   }
 
-  if (data.startsWith('registration_confirm:')) {
+  if (data.startsWith('registration_choice:') || data.startsWith('registration_confirm:')) {
     return registerCommand.handleCallback(ctx);
   }
 

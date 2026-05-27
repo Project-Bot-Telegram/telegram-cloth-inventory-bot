@@ -5,7 +5,7 @@ const supportCommand = require('../support/support');
 
 const registrationQuestions = [
   { key: 'phone_number', prompt: 'សូមបញ្ចូលលេខទូរស័ព្ទរបស់អ្នក:' },
-  { key: 'address', prompt: 'សូមបញ្ចូលទីតាំងផ្ទះរបស់អ្នក:' }
+  { key: 'address', prompt: 'សូមបញ្ចូលទីតាំងរបស់អ្នក:' }
 ];
 
 const getTelegramFullName = (telegramUser) => {
@@ -37,19 +37,37 @@ const buildProfileMessage = (user) => {
 const startRegistration = async (ctx) => {
   ctx.session = ctx.session || {};
   const telegramUser = ctx.from;
+  const fullName = getTelegramFullName(telegramUser);
 
   ctx.session.registration = {
+    awaitingChoice: true,
     stepIndex: 0,
     data: {
       telegram_id: telegramUser.id,
       username: telegramUser.username || null,
-      full_name: getTelegramFullName(telegramUser)
+      full_name: fullName,
+      phone_number: null,
+      address: null
     }
   };
 
-  await ctx.reply('សូមស្វាគមន៍មកកាន់ bot telegram លកផលិតផលរបស់យើងខ្ញុំ!!', mainMenuKeyboard(false));
-  await ctx.reply('ដើម្បីចាប់ផ្តើម សូមបញ្ចូលព័ត៌មានខ្លះៗរបស់អ្នក!!');
-  await ctx.reply(registrationQuestions[0].prompt);
+  const user = new User(ctx.session.registration.data);
+  await user.save();
+
+  await ctx.reply(`សូមស្វាគមន៍មកកាន់ bot telegram លក់ផលិតផលរបស់យើងខ្ញុំ, ${fullName}!!`, mainMenuKeyboard(false));
+  await ctx.reply(
+    'ដើម្បីសម្រួលដល់ការដឹកជញ្ជូន និង ការទំនាក់ទំនងសេវាកម្មអតិថិជន\n'+
+    'យើងត្រូវការព័ត៌មានរបស់អ្នកមួយចំនួនដូចជា:\n\n' +
+    '- លេខទូរស័ព្ទ\n' +
+    '- ទីតាំង\n\n' +
+    '-skip ដើម្បីរំលង\n- continue ដើម្បីបញ្ចូលព័ត៌មានរបស់អ្នក',
+    Markup.inlineKeyboard([
+      [
+        Markup.button.callback('skip', 'registration_choice:skip'),
+        Markup.button.callback('continue', 'registration_choice:continue')
+      ]
+    ])
+  );
 };
 
 const showRegistrationConfirmation = async (ctx) => {
@@ -72,19 +90,19 @@ const showRegistrationConfirmation = async (ctx) => {
 };
 
 const saveRegisteredUser = async (ctx) => {
-  const user = new User(ctx.session.registration.data);
+  const data = ctx.session.registration.data;
 
-  try {
-    await user.save();
-  } catch (error) {
-    if (error && error.code === 11000) {
-      ctx.session.registration = null;
-      return ctx.reply('អ្នកបានចុះឈ្មោះរួចហើយ!! សូមប្រើ /start ដើម្បីចាប់ផ្តើមប្រើប្រាស់។');
+  await User.updateOne(
+    { telegram_id: data.telegram_id },
+    {
+      $set: {
+        phone_number: data.phone_number || null,
+        address: data.address || null
+      }
     }
+  );
 
-    throw error;
-  }
-
+  const user = await User.findOne({ telegram_id: data.telegram_id });
   ctx.session.registration = null;
 
   const doneMsg = '' +
@@ -100,6 +118,10 @@ const saveRegisteredUser = async (ctx) => {
 
 const handleRegistrationResponse = async (ctx, text) => {
   const registration = ctx.session.registration;
+
+  if (registration.awaitingChoice) {
+    return ctx.reply('សូមចុចប៊ូតុង skip ឬ continue ខាងក្រោម ដើម្បីបន្ត។');
+  }
 
   if (registration.awaitingConfirmation) {
     return ctx.reply('សូមប្រើប្រាស់ប៊ូតុង cancel ឬ improve ខាងក្រោមនៃព័ត៌មានរបស់អ្នក:');
@@ -120,7 +142,7 @@ const handleRegistrationResponse = async (ctx, text) => {
 
 const handleRegistrationCallback = async (ctx) => {
   const callbackQuery = ctx.callbackQuery;
-  if (!callbackQuery || !callbackQuery.data || !callbackQuery.data.startsWith('registration_confirm:')) {
+  if (!callbackQuery || !callbackQuery.data || (!callbackQuery.data.startsWith('registration_confirm:') && !callbackQuery.data.startsWith('registration_choice:'))) {
     return false;
   }
 
@@ -153,6 +175,22 @@ const handleRegistrationCallback = async (ctx) => {
 
     await ctx.answerCbQuery();
     await saveRegisteredUser(ctx);
+    return true;
+  }
+
+  if (action === 'skip') {
+    ctx.session.registration = null;
+    await ctx.answerCbQuery();
+    await ctx.reply('អ្នកបានលាលៈមិនចង់បញ្ចូលព័ត៌មានទេ។ ខាងក្រោមនេះជាលីងនៃការជំនួយ៖');
+    await supportCommand(ctx);
+    return true;
+  }
+
+  if (action === 'continue') {
+    ctx.session.registration.awaitingChoice = false;
+    ctx.session.registration.stepIndex = 0;
+    await ctx.answerCbQuery();
+    await ctx.reply(registrationQuestions[0].prompt);
     return true;
   }
 

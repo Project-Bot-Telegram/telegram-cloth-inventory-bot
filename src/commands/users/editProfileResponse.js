@@ -34,8 +34,8 @@ module.exports = async (ctx) => {
   if (editSession.stepIndex === 0) {
     editSession.data.phone_number = text;
     editSession.stepIndex = 1;
-    return ctx.reply('សូមបញ្ចូលលេខទូរស័ព្ទថ្មីរបស់អ្នក:', Markup.inlineKeyboard([
-      [Markup.button.callback('skip ដើម្បីរក្សាទុកលេខចាស់', 'edit_profile:skip_phone')]
+    return ctx.reply('សូមបញ្ចូលទីតាំងថ្មីរបស់អ្នក:', Markup.inlineKeyboard([
+      [Markup.button.callback('skip ដើម្បីរក្សាទុកទីតាំងចាស់', 'edit_profile:skip_address')]
     ]));
   }
 
