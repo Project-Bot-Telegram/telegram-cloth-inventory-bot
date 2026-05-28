@@ -121,7 +121,7 @@ module.exports = async (ctx) => {
 
     if (!confirmed) {
       ctx.session.editProfile = null;
-      return ctx.reply('ការ update profile ត្រូវបាន​ concel !!');
+      return ctx.reply('ការ update profile ត្រូវបាន​ cancel !!');
     }
 
     const updatedData = ctx.session.editProfile.data;

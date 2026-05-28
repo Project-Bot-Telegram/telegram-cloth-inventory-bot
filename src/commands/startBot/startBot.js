@@ -22,7 +22,9 @@ const startBot = async (bot) => {
     { command: 'start', description: 'ចាប់ផ្តើម bot និងបង្ហាញ menu' },
     { command: 'status', description: 'check connection status' },
     { command: 'support', description: 'Contact support' },
-    { command: 'help', description: 'Show help information' }
+    { command: 'help', description: 'Show help information' },
+    { command: 'admin', description: 'Admin functions and management' },
+    { command: 'totaluser', description: 'Show total registered users' }
   ];
 
   await bot.telegram.setMyCommands(botCommands);

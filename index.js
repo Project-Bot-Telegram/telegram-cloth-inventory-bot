@@ -103,7 +103,7 @@ bot.command('help', helpCommand);
 bot.command('admin', roleMiddleware, adminCommand);
 bot.command('search', authMiddleware, searchProduct);
 bot.command('cart', authMiddleware, viewCartCallback);
-bot.command('total-user', roleMiddleware, totalUserCommand);
+bot.command('totaluser', roleMiddleware, totalUserCommand);
 
 bot.hears('📦 បង្ហាញផលិតផល​ 📦', authMiddleware, showCategories);
 bot.hears('📦 គ្រប់គ្រងផលិតផល 📦', roleMiddleware, showCategories);
@@ -124,7 +124,7 @@ bot.on('callback_query', async (ctx) => {
     return;
   }
 
-  if (data.startsWith('registration_confirm:')) {
+  if (data.startsWith('registration_choice:') || data.startsWith('registration_confirm:')) {
     return registerCommand.handleCallback(ctx);
   }
 
@@ -196,6 +196,10 @@ bot.on('callback_query', async (ctx) => {
 
   if (data.startsWith('order_history_more:')) {
     return orderHistoryCommand.handleMore(ctx);
+  }
+
+  if (data.startsWith('totaluser_more:')) {
+    return totalUserCommand.handleMore(ctx);
   }
 
   if (data.startsWith('view_cart')) {

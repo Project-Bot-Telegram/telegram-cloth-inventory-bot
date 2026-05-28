@@ -24,7 +24,7 @@ module.exports = async (ctx) => {
   if (choice === 'profile') {
     if (!user.address) {
       await safeAnswerCbQuery(ctx);
-      return ctx.reply('ក្នុងប្រវត្តិរបស់អ្នកមិនមានអាសយដ្ឋានដឹកជញ្ជូនដែលបានរក្សាទុកទេ។ សូមផ្ញើអាសយដ្ឋានដឹកជញ្ជូនរបស់អ្នកឥឡូវ។');
+      return ctx.reply('ក្នុង profile របស់អ្នកមិនមានអាសយដ្ឋានដឹកជញ្ជូនដែលបានរក្សាទុកនោះទេ!! \nសូមបញ្ចូលអាសយដ្ឋានរបស់អ្នកដើម្បីបន្តការបញ្ជាទិញ:');
     }
 
     await safeAnswerCbQuery(ctx);
@@ -33,7 +33,7 @@ module.exports = async (ctx) => {
 
   if (choice === 'new') {
     await safeAnswerCbQuery(ctx);
-    return ctx.reply('សូមផ្ញើអាសយដ្ឋានដឹកជញ្ជូនរបស់អ្នកដើម្បីបន្ត។');
+    return ctx.reply('សូមបញ្ចូលអាសយដ្ឋានរបស់អ្នកដើម្បីបន្តការបញ្ជាទិញ:');
   }
 
   await safeAnswerCbQuery(ctx, 'ជម្រើសអាសយដ្ឋានមិនត្រឹមត្រូវ។', { show_alert: true });
