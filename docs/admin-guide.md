@@ -14,7 +14,7 @@ Admin-specific buttons include:
 
 Admin-only commands:
 
-- `/total-user` — Show total number of registered users.
+- `/totaluser` — Show total number of registered users.
 - `/view-<user_id>` — View a user profile.
 - `/promote-<user_id>` — Promote a user to admin.
 
@@ -75,7 +75,7 @@ Admin pages show stock actions for products.
 
 ## 6. Admin commands in detail
 
-- `/total-user`
+- `/totaluser`
   - Returns the total count of registered bot users.
 
 - `/view-<user_id>`

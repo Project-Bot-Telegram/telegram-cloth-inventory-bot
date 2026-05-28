@@ -108,7 +108,7 @@ For cart-based orders:
 - `/status` — Check whether MongoDB is connected.
 - `/search <field> <query>` — Search products by `id`, `name`, `category`, or `price`.
 - `/cart` — Open the current cart and proceed to checkout.
-- `/total-user` — Admin only: show total registered users.
+- `/totaluser` — Admin only: show total registered users.
 - `/view-<user_id>` — Admin only: view a user profile.
 - `/promote-<user_id>` — Admin only: promote a user to admin.
 

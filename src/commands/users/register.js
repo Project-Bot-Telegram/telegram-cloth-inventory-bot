@@ -181,7 +181,7 @@ const handleRegistrationCallback = async (ctx) => {
   if (action === 'skip') {
     ctx.session.registration = null;
     await ctx.answerCbQuery();
-    await ctx.reply('អ្នកបានលាលៈមិនចង់បញ្ចូលព័ត៌មានទេ។ ខាងក្រោមនេះជាលីងនៃការជំនួយ៖');
+    await ctx.reply('អ្នកបានរំលងការបញ្ចូលព័ត៌មានរបស់អ្នក!! អ្នកអាចបញ្ចូលព័ត៌មានរបស់អ្នកនៅពេលណាមួយដោយប្រើ /profile ដើម្បីកែប្រែព័ត៌មានរបស់អ្នក។', mainMenuKeyboard(false));
     await supportCommand(ctx);
     return true;
   }

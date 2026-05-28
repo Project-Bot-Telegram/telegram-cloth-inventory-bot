@@ -31,7 +31,7 @@ Registered user commands:
 Admin-only commands and buttons:
 
 - `/admin` — Open admin panel.
-- `/total-user` — Count registered users.
+- `/totaluser` — Count registered users.
 - `/view-<user_id>` — View a user profile.
 - `/promote-<user_id>` — Promote a user to admin.
 - `📦 គ្រប់គ្រងផលិតផល 📦` — Open admin product management.
